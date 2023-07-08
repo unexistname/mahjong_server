@@ -1,0 +1,247 @@
+import { ConditionFilter } from "../../utils/ConditionFilter";
+import { ErrorCode } from "../ErrorCode";
+import GamberModel from "../Game/GamberModel";
+import GameMgr from "../Game/GameMgr";
+import { GameConst } from "../GameConst";
+import SSSCardPointMgr from "./SSSCardPointMgr";
+import SSSGamberModel from "./SSSGamberModel";
+import SSSNet from "./SSSNet";
+
+
+export default class SSSGameMgr extends GameMgr {
+
+    net: SSSNet;
+    gambers: SSSGamberModel[];
+
+    StateOver_idle() {
+        this.updateGameState(GameConst.GameState.DRAW_CARD);
+        this.State_drawCard();
+    }
+
+    StateOver_drawCard() {
+        super.StateOver_drawCard();
+        for (let gamber of this.gambers) {
+            let cardType = SSSCardPointMgr.getSpecialCardType(gamber.holds);
+            if (cardType) {
+                this.net.G_Special(gamber.userId, cardType);
+            }
+        }
+    }
+
+    State_betting(gamber?: GamberModel) {
+        this.net.G_Betting([]);
+        this.nextState();
+    }
+
+    @ConditionFilter(ErrorCode.GAME_STATE_ERROR, GameConst.GameState.BETTING)
+    C_UseSpecial(gamber: SSSGamberModel, cardType: number) {
+        if (SSSCardPointMgr.getSpecialCardType(gamber.holds) != cardType || cardType <= 0) {
+            return ErrorCode.UNEXCEPT_OPERATE;
+        }
+
+        gamber.hasBetting = true;
+        gamber.useSpecialCard = true;
+        gamber.combineCards = SSSCardPointMgr.getSortSpecialCard(gamber.holds, cardType);
+       
+        this.net.G_Combine(gamber.userId, gamber.combineCards, cardType);
+        this.nextState();
+    }
+
+    @ConditionFilter(ErrorCode.GAME_STATE_ERROR, GameConst.GameState.BETTING)
+    @ConditionFilter(ErrorCode.COMBINE_CARD_ERROR)
+    @ConditionFilter(ErrorCode.CANT_POUR_WATER)
+    C_Combine(gamber: SSSGamberModel, cards: number[][]) {
+        if (gamber.hasBetting) {
+            return ErrorCode.UNEXCEPT_OPERATE;
+        }
+        gamber.hasBetting = true;
+        gamber.combineCards = cards;
+
+        this.net.G_Combine(gamber.userId, gamber.combineCards);
+        this.nextState();
+    }
+
+    isGameCanOver(gamber: GamberModel) {
+        for (let gamber of this.gambers) {
+            if (!gamber.hasBetting) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    StateOver_betting(...args: any) {
+        if (this.isGameCanOver(this.turnGamber)) {
+            this.updateGameState(GameConst.GameState.SHOW_CARD);
+            this.State_showCard();
+        }
+    }
+
+    State_showCard() {
+        let data: any = {};
+        for (let gamber of this.gambers) {
+            if (gamber.useSpecialCard) {
+                gamber.cardType = SSSCardPointMgr.getSpecialCardType(gamber.holds);
+            } else {
+                gamber.cardType = [];
+                for (let j = 0; j < 3; j++) {
+                    // @ts-ignore
+                    gamber.cardType.push(SSSCardPointMgr.getCommonCardType(gamber.combineCards[j]));
+                }
+            }
+            data[gamber.userId] = {
+                userId: gamber.userId,
+                holds: gamber.holds,
+                combineCards: gamber.combineCards,
+                useSpecialCard: gamber.useSpecialCard,
+                cardType: gamber.cardType,
+            };
+        }
+        this.net.G_ShowCard(data);
+        this.nextState();
+    }
+
+    settle() {
+        let baseScore = this.roomConf.baseScore;
+        var kill: number[][] = [];
+        // 先普通比牌
+
+        let addKill = (s: number, t: number, score: number) => {
+            if (!kill[s]) {
+                kill[s] = [];
+            }
+            kill[s][t] = score;
+        }
+
+        for (let i = 0; i < this.gamberNum; ++i) {
+            let gamber = this.gambers[i];
+            if (gamber.useSpecialCard) {
+                continue;
+            }
+            var win1 = 0;
+            var win2 = 0;
+            var winPoint = 0;
+            for (let j = i + 1; j < this.gamberNum; ++j) {
+                let gamber2 = this.gambers[j];
+                if (gamber2.useSpecialCard) {
+                    continue;
+                }
+                
+                for (var k = 0; k < 3; ++k) {
+                    // @ts-ignore
+                    var value1 = SSSCardPointMgr.getCommonSpecialValue(gamber.combineCards[k]);
+                    // @ts-ignore
+                    var value2 = SSSCardPointMgr.getCommonSpecialValue(gamber2.combineCards[k]);
+                    if (value1 > value2) {
+                        // @ts-ignore
+                        var point = SSSCardPointMgr.getCommonMultiple(k, gamber.combineCards[k]) * baseScore;
+                        this.changeGamberScore(gamber, point);
+                        this.changeGamberScore(gamber2, -point);
+                        // gamber.score += point;
+                        // gamber2.score -= point;
+                        win1++;
+                        winPoint += point;
+                    } else if (value1 < value2) {
+                        // @ts-ignore
+                        var point = SSSCardPointMgr.getCommonMultiple(k, gamber2.combineCards[k]) * baseScore;
+                        this.changeGamberScore(gamber, -point);
+                        this.changeGamberScore(gamber2, point);
+                        // gamber2.score += point;
+                        // gamber.score -= point;
+                        win2++;
+                        winPoint += point;
+                    }
+                }
+                
+                // 打枪翻倍
+                if (win1 == 0 && win2 > 0) {    // 被打枪或者碾过
+                    gamber2.shoot.push(i);
+                    this.changeGamberScore(gamber, -winPoint);
+                    this.changeGamberScore(gamber2, winPoint);
+                    // gamber2.score += winPoint;
+                    // gamber.score -= winPoint;
+                    addKill(j, i, winPoint * 2);
+                }
+                if (win2 == 0 && win1 > 0) {
+                    gamber.shoot.push(j);
+                    this.changeGamberScore(gamber, winPoint);
+                    this.changeGamberScore(gamber2, -winPoint);
+                    // gamber.score += winPoint;
+                    // gamber2.score -= winPoint;
+                    addKill(i, j, winPoint * 2);
+                }
+            }
+        }
+
+        // 再特殊比牌
+        for (let i = 0; i < this.gamberNum; ++i) {
+            let gamber = this.gambers[i];
+            if (!gamber.useSpecialCard) continue;
+
+            var point = SSSCardPointMgr.getSpecialMultiple(gamber.holds) * baseScore;
+            for (let j = i + 1; j < this.gamberNum; ++j) {
+                let gamber2 = this.gambers[j];
+
+                if (gamber2.useSpecialCard) {
+                    var result = SSSCardPointMgr.compareSpecialCard(gamber.holds, gamber2.holds);
+                    if (result > 0) {
+                        this.changeGamberScore(gamber, point);
+                        this.changeGamberScore(gamber2, -point);
+                        // gamber.score += point;
+                        // gamber2.score -= point;
+                        addKill(i, j, point);
+                    } else if (result < 0) {
+                        var point2 = SSSCardPointMgr.getSpecialMultiple(gamber2.holds) * baseScore;
+                        this.changeGamberScore(gamber, -point2);
+                        this.changeGamberScore(gamber2, point2);
+                        // gamber2.score += point2;
+                        // gamber.score -= point;
+                        addKill(j, i, point);
+                    }
+                } else {
+                    this.changeGamberScore(gamber, point);
+                    this.changeGamberScore(gamber2, -point);
+                    // gamber.score += point;
+                    // gamber2.score -= point;
+                    addKill(i, j, point);
+                }
+            }
+        }
+
+        // 计算通杀
+        for (let i = 0; i < this.gamberNum; ++i) {
+            let hasKill = true;
+            for (let j = 0; j < this.gamberNum; ++j) {
+                if (i == j) continue;
+                if (!kill[i] || !kill[i][j]) {
+                    hasKill = false;
+                }
+            }
+            if (hasKill) {
+                let gamber = this.gambers[i];
+                for (let j = 0; j < this.gamberNum; ++j) {
+                    if (i == j) continue;
+                    let gamber2 = this.gambers[j];
+                    this.changeGamberScore(gamber, kill[i][j]);
+                    this.changeGamberScore(gamber2, -kill[i][j]);
+                    // gamber.score += kill[i][j];
+                    // gamber2.score -= kill[i][j];
+                }
+            }
+        }
+    }
+
+    getSettleExtraData(gamber: SSSGamberModel) {
+        return {
+            combineCards: gamber.combineCards,
+        }
+    }
+
+    generateGamber() {
+        return new SSSGamberModel();
+    }
+
+    getBrightCardNum(): number {
+        return 13;
+    }
+}
