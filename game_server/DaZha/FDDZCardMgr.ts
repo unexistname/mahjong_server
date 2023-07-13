@@ -1,5 +1,6 @@
 import CardMgr from "../Game/CardMgr";
 import { PokerCardDecor } from "../Poker/PokerCardDecor";
+import FDDZCardPointMgr from "./FDDZCardPointMgr";
 
 
 export default class FDDZCardMgr extends CardMgr {
@@ -17,5 +18,9 @@ export default class FDDZCardMgr extends CardMgr {
             cards.push(this.createPokerCard(PokerCardDecor.GHOST, 2));  // 大王
         }
         return cards; 
+    }
+
+    sortCard(holds: number[], huns: number[] = []) {
+        holds.sort(FDDZCardPointMgr.isBetterCard.bind(FDDZCardPointMgr));
     }
 }

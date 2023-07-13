@@ -16,6 +16,7 @@ const multer = require('multer');
 const bodyParser = require('body-parser');
 const multiparty = require('multiparty');
 const { default: AllUserMgr } = require("../common/AllUserMgr");
+const { default: LogUtil } = require('../utils/LogUtil');
 
 const app = express();
 app.listen(8899);
@@ -79,52 +80,6 @@ function dealPostFunc(req, callback) {
         callback(postData);
     })
 }
-
-// http.createServer((req, res) => {
-//     logger.admin_log("req.url =", req.url);
-//     const { pathname, query } = url.parse(req.url, true)
-//     logger.admin_log(pathname, query);
-
-//     if (pathname === "/") {
-//         res.setHeader('Content-Type','text/html;charset=utf-8');
-//         fs.createReadStream(`${webRootPath}/index.html`).pipe(res);
-//     } else if (fs.existsSync(`${webRootPath}${pathname}`)) {
-//         res.setHeader('Content-Type', mime.lookup(pathname) +';charset=utf-8');
-//         fs.createReadStream(`${webRootPath}${pathname}`).pipe(res);
-//     } else if (pathname == "/upload") {
-//         upload(req, res);
-//     } else if (pathname == "/login") {
-//         login(req, res);
-//     } else if (pathname == "/get_all_user_info") {
-//         getAllUserInfo(req, res);
-//     } else if (pathname == "/get_all_user_permission") {
-//         getAllUserPermission(req, res);
-//     } else if (pathname == "/set_user_black") {
-//         setUserBlack(req, res, query);
-//     } else if (pathname == "/set_user_permission") {
-//         setUserPermission(req, res, query);
-//     } else if (pathname == "/get_all_prop") {
-//         getAllProp(req, res);
-//     } else if (pathname == "/get_all_series") {
-//         getAllSeries(req, res);
-//     }else if (pathname == "/delete_prop") {
-//         deleteProp(req, res, query);
-//     } else if (pathname == "/add_prop") {
-//         addProp(req, res, query);
-//     } else if (pathname == "/get_all_order") {
-//         getAllOrder(req, res);
-//     } else if (pathname == "/get_user_amount") {
-//         getUserAmount(req, res);
-//     } else if (pathname == "/get_total_order_pay") {
-//         getTotalOrderPay(req, res);
-//     } else if (pathname == "/get_all_game_cost") {
-//         getAllGameCost(req, res);
-//     } else {
-//         logger.admin_log("错误的访问", req.url);
-//         res.statusCode=404;
-//         res.end();
-//     }
-// }).listen(7030);
 
 app.get("/", function(req, res) {
     res.setHeader('Content-Type','text/html;charset=utf-8');
@@ -398,6 +353,15 @@ app.get("/add_gem", function(req, res) {
     });
 });
 
+app.get("/get_all_record", function(req, res) {
+    let userId = req.query.userId;
+    safeDoAction(req, res, function() {
+        db.get_user_record(userId, function(data) {
+            res.end(JSON.stringify(data));
+        });
+    });
+});
+
 app.post("/login", function(req, res) {
     let query = req.body;
     var account = query.account;
@@ -422,8 +386,9 @@ app.post("/login", function(req, res) {
 });
 
 app.use(function(req, res, next) {
-    const { pathname, query } = url.parse(req.url, true);
-    logger.admin_log("通配路径", pathname);
+    const { pathname } = url.parse(req.url, true);
+    const query = req.query;
+    LogUtil.debug("通配路径", pathname);
     let filePath = `${webRootPath}${pathname}`;
     if (fs.existsSync(filePath)) {
         let stat = fs.lstatSync(filePath);
@@ -431,6 +396,14 @@ app.use(function(req, res, next) {
             next();
         } else {
             res.setHeader('Content-Type', mime.lookup(pathname) +';charset=utf-8');
+            if (filePath.endsWith(".html")) {
+                res.write(`<script type="text/javascript" charset="utf-8">\n`);
+                res.write(`var query = {};\n`);
+                for (let key in query) {
+                    res.write(`query.${key}="${query[key]}";\n`);
+                }
+                res.write(`</script>\n`);
+            }
             fs.createReadStream(filePath).pipe(res);
         }
     } else {

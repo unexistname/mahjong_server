@@ -14,7 +14,6 @@ import MJGamberModel from "./Majhong/MJGamberModel";
 import MJGameMgr from "./Majhong/MJGameMgr";
 import NNGameMgr from "./NiuNiu/NNGameMgr";
 import PDKGameMgr from "./PaoDeKuai/PDKGameMgr";
-import RecordMgr from "./Record/RecordMgr";
 import AllRoomMgr from "./Room/AllRoomMgr";
 import RoomNet from "./Room/RoomNet";
 import SSSGamberModel from "./ShiSanShui/SSSGamberModel";
@@ -31,6 +30,22 @@ export default class GameSocket extends BaseSocket {
 
     static C_BeginGame(ws: any, msg: any) {
         return AllRoomMgr.ins.C_BeginGame(ws.userId);
+    }
+
+    static C_Emoji(ws: any, msg: any) {
+        return AllRoomMgr.ins.C_Emoji(ws.userId, msg);
+    }
+
+    static C_QuickChat(ws: any, msg: any) {
+        return AllRoomMgr.ins.C_QuickChat(ws.userId, msg);
+    }
+
+    static C_Chat(ws: any, msg: any) {
+        return AllRoomMgr.ins.C_Chat(ws.userId, msg);
+    }
+
+    static C_Voice(ws: any, msg: any) {
+        return AllRoomMgr.ins.C_Voice(ws.userId, msg);
     }
 
     static C_Rob(ws: any, msg: any) {
@@ -66,15 +81,21 @@ export default class GameSocket extends BaseSocket {
     }
 
     static CA_ShowReplaceCard(ws: any, msg: any) {
-
+        return this.doOperate(ws, msg, (game: GameMgr, gamber: GamberModel) => {
+            return game.CA_ShowReplaceCard(gamber);
+        });
     }
 
     static CA_ReplaceCard(ws: any, msg: any) {
-
+        return this.doOperate(ws, msg, (game: GameMgr, gamber: GamberModel) => {
+            return game.CA_ReplaceCard(gamber, msg.myCard, msg.heapCard);
+        });
     }
 
-    static CA_ShowCard(ws: any, msg: any) {
-
+    static CA_Perspect(ws: any, msg: any) {
+        return this.doOperate(ws, msg, (game: GameMgr, gamber: GamberModel) => {
+            return game.CA_Perspect(gamber);
+        });
     }
 
     static doOperate(ws: any, msg: any, callback: Function) {

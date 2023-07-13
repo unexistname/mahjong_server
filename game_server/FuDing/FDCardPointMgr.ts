@@ -76,6 +76,20 @@ export default class FDCardPointMgr extends MJCardPointMgr {
         return gamber.hued && gamber.pattern == GameConst.HuType.HUA_8;
     }
 
+    //检查用户牌组是否是对对胡
+    static isDuiDui( game: MJGameMgr, gamber: MJGamberModel ) {
+        for (let penggang of gamber.penggangs) {
+            if(typeof penggang[1] == "object"){
+                return false;
+            }
+        }
+        let rule = this.getRuleData(game, gamber);
+        if (rule && rule.maxPengNum + gamber.penggangs.length < 5) {
+            return false;
+        }
+        return true;
+    }
+
     static getWinTypes(game: FDGameMgr, gamber: FDGamberModel) {
         let winTypes = super.getWinTypes(game, gamber);
         if (this.is3Hun(game, gamber )) {

@@ -31,11 +31,15 @@ export namespace NetDefine {
         C_PlayCard,
         C_ShowProp,
         C_UseProp,
+        C_Voice,
+        C_Chat,
+        C_QuickChat,
+        C_Emoji,
 
         // 管理员特殊操作
         CA_ShowReplaceCard,
         CA_ReplaceCard,
-        CA_ShowCard,
+        CA_Perspect,
 
         // 钓蟹
         C_Eat,
@@ -92,6 +96,10 @@ export namespace NetDefine {
         G_CreateRoom,
         G_ShowCreateRoom,
         G_ShowDissolve,
+        G_Voice,
+        G_Chat,
+        G_QuickChat,
+        G_Emoji,
         
         G_ShowRecord,
         G_RobBanker,

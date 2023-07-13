@@ -46,7 +46,7 @@ export default class MJCardPointMgr {
     }
 
     static getTingCard(game: MJGameMgr, gamber: MJGamberModel) {
-        let map = checkHu.doCheckTing( gamber.holds, game.huns, game.bans );	   //检查平胡
+        let map = checkHu.doCheckTing( gamber.holds, game.huns, game.banJiangs );	   //检查平胡
         if( map.length > 0 ) {
             map = map.concat(game.huns);
             return {
@@ -282,16 +282,72 @@ export default class MJCardPointMgr {
 
     //检查用户牌组是否是对对胡
     static isDuiDui( game: MJGameMgr, gamber: MJGamberModel ) {
-        for (let penggang of gamber.penggangs) {
-            if(typeof penggang[1] == "object"){
+        if (gamber.penggangs.length > 0) {
+            return false;
+        }
+        
+        let hunCnt = 0, needHunCnt = 0;
+        for (let pai in gamber.countMap) {
+            let cardNum = gamber.countMap[pai];
+            if (game.isHun(pai)) {
+                hunCnt += cardNum;
+            } else {
+                if (cardNum > 2) {
+                    return false;
+                } else {
+                    needHunCnt += 2 - cardNum;
+                }
+            }
+        }
+        return hunCnt >= needHunCnt;
+    }
+
+    static isBanBan( game: MJGameMgr, gamber: MJGamberModel ) {
+        for (let pai in gamber.countMap) {
+            if (game.banJiangs.indexOf(Number(pai)) >= 0) {
                 return false;
             }
         }
-        let rule = this.getRuleData(game, gamber);
-        if (rule && rule.maxPengNum + gamber.penggangs.length < 5) {
-            return false;
+        return true;
+    }
+
+    static isPengPeng( game: MJGameMgr, gamber: MJGamberModel ) {
+        for (let penggang of gamber.penggangs) {
+            if (penggang[0] != "peng") {
+                return false;
+            }
+        }
+        let hasCnt2 = false;
+        for (let pai in gamber.countMap) {
+            let cardNum = gamber.countMap[pai];
+            if (cardNum == 3) {
+                continue;
+            } else if (cardNum == 2) {
+                if (hasCnt2) {
+                    return false;
+                } else {
+                    hasCnt2 = true;
+                }
+            } else {
+                return false;
+            }
         }
         return true;
+    }
+
+    static isQueYiMen(game: MJGameMgr, gamber: MJGamberModel) {
+        let types: { [key: number] : boolean} = {};
+        for (let pai in gamber.countMap) {
+            let cardType = this.getMJType(Number(pai));
+            types[cardType] = true;
+        }
+        let cnt = 0;
+        for (let i =  0; i < 3; ++i) {
+            if (types[i]) {
+                cnt++;
+            }
+        }
+        return cnt == 2;
     }
 
     static is4Xi( game: MJGameMgr, gamber: MJGamberModel ) {

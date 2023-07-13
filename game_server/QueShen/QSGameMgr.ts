@@ -1,10 +1,14 @@
 import GameUtil from "../../utils/GameUtil";
+import { GameConst } from "../GameConst";
+import MJGamberModel from "../Majhong/MJGamberModel";
 import MJGameMgr from "../Majhong/MJGameMgr";
+import QSCardPointMgr from "./QSCardPointMgr";
 
 
 export default class QSGameMgr extends MJGameMgr {
 
     canChi: boolean = false;
+    banJiangs: number[] = [1, 4, 7, 10, 13, 16, 19, 22, 25];
 
     State_decideBanker() {
         if (this.bankerId == null) {
@@ -25,5 +29,10 @@ export default class QSGameMgr extends MJGameMgr {
         
         this.net.G_DecideBanker(this.bankerId, this.getGamberIds());
         this.nextState();
+    }
+
+    updateCanHu(gamber: MJGamberModel, targetCard: number) {
+        gamber.pattern = QSCardPointMgr.getHuPattern(this, gamber, targetCard);
+        gamber.canHu = gamber.pattern != GameConst.HuType.NONE;
     }
 }

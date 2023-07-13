@@ -125,4 +125,28 @@ export default class AllRoomMgr {
         room.addUser(user);
         this.userRooms[userId] = roomId;
     }
+
+    @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)
+    C_Chat(userId: string, data: any) {
+        let room = this.getRoomByUserId(userId);
+        return room && room.C_Chat(userId, data);
+    }
+
+    @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)
+    C_QuickChat(userId: string, data: any) {
+        let room = this.getRoomByUserId(userId);
+        return room && room.C_QuickChat(userId, data);
+    }
+
+    @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)
+    C_Emoji(userId: string, data: any) {
+        let room = this.getRoomByUserId(userId);
+        return room && room.C_Emoji(userId, data);
+    }
+
+    @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)
+    C_Voice(userId: string, data: any) {
+        let room = this.getRoomByUserId(userId);
+        return room && room.C_Voice(userId, data);
+    }
 }

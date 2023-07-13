@@ -57,6 +57,10 @@ export namespace GameConst {
         DI_HU = "地胡",
         XI_4 = "大四喜",
         LAI_ZI = "辣子",
+        QUE_YI_MEN = "缺一门",
+        BAN_BAN = "板板胡",
+        PENG_PENG = "碰碰胡",
+        QIANG_GANG = "抢杠胡",
     }
 
     export enum PayType {

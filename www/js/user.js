@@ -32,6 +32,7 @@ function initUsers(datas) {
 		
 		userDom += "<td>" + formatDate(user.createTime) + "</td>";
 		userDom += "<td>" + formatDate(user.lastLogin) + "</td>";
+		userDom += "<td>" + `<a href="javascript: showRecord(${user.userId}, 0)">` + "战绩" + "</a>" + "</td>";
 		
 		if (user.isBlack == 1) {
 			userDom += "<td>" + `<a href="javascript: setUserBlack(${user.userId}, 0)">` + "取消拉黑" + "</a>" + "</td>";
@@ -64,6 +65,10 @@ function updateUserBlack(data) {
 
 function setUserBlack(userId, black) {
 	asyncGet("set_user_black", {userId: userId, black: black}, updateUserBlack);
+}
+
+function showRecord(userId) {
+	window.location = "./record.html" + "?userId=" + userId;
 }
 
 $(function() {

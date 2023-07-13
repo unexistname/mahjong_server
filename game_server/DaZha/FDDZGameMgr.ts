@@ -20,6 +20,7 @@ export default class FDDZGameMgr extends GameMgr {
     folds: number[] = [];
     fundPool: number;
     winner: GamberModel;
+    sortCard: boolean = true;
 
     StateOver_idle(...args: any): void {
         this.updateGameState(GameConst.GameState.DECIDE_BANKER);
@@ -51,11 +52,12 @@ export default class FDDZGameMgr extends GameMgr {
             let friendIndex = (this.banker.seatIndex + 2) % this.gamberNum;
             this.bankerFriend = this.gambers[friendIndex];
         }
-        if (Math.abs(this.bankerFriend.seatIndex - this.banker.seatIndex) != 2) {
-            let oppositeSeatIndex = (this.banker.seatIndex + 2) % this.gamberNum;
-            let oppositeGamber = this.gambers[oppositeSeatIndex];
-            this.room.swapGamberSeat(this.bankerFriend.userId, oppositeGamber.userId);
-        }
+        this.room.swapGamberSeat(this.bankerFriend.userId, this.banker.userId);
+        // if (Math.abs(this.bankerFriend.seatIndex - this.banker.seatIndex) != 2) {
+        //     let oppositeSeatIndex = (this.banker.seatIndex + 2) % this.gamberNum;
+        //     let oppositeGamber = this.gambers[oppositeSeatIndex];
+        //     this.room.swapGamberSeat(this.bankerFriend.userId, oppositeGamber.userId);
+        // }
         this.net.G_Friend(this.banker.userId, this.bankerFriend.userId);
         this.updateGameState(GameConst.GameState.BETTING);
 
@@ -216,6 +218,7 @@ export default class FDDZGameMgr extends GameMgr {
     reconnectOverDrawCard(userId: string) {
         this.net.G_FriendCard(this.friendCard, userId);
         this.net.G_Friend(this.banker.userId, this.bankerFriend.userId, userId);
+        super.reconnectOverDrawCard(userId);
     }
     
     notifyOperate(gamber: GamberModel, operate: any, data: any = {}) {
@@ -229,6 +232,10 @@ export default class FDDZGameMgr extends GameMgr {
         } else {
             return PlayCardOperate.PLAY | PlayCardOperate.WAIVE;
         }
+    }
+
+    getAllState() {
+        return [GameConst.GameState.IDLE, GameConst.GameState.DECIDE_BANKER, GameConst.GameState.DRAW_CARD, GameConst.GameState.BETTING, GameConst.GameState.SHOW_CARD, GameConst.GameState.SETTLE];
     }
 
     getBrightCardNum(): number {

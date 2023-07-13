@@ -69,9 +69,9 @@ export default class GameNet {
         }
     }
 
-    G_Fold(userId: string, pai: number | number[], cardType?: any) {
+    G_Fold(userId: string, pai: number | number[], cardType?: any, syncUserId?: string) {
         let data = {userId: userId, pai: pai, cardType: cardType};
-        NetUtil.roomBroadcast(this.roomId, NetDefine.WS_Resp.G_Fold, data);
+        this.send(NetDefine.WS_Resp.G_Fold, data, syncUserId);
     }
 
     G_FundPoolChange(fundPool: number, syncUserId?: string) {
@@ -180,6 +180,7 @@ export default class GameNet {
             roomId: room.roomId,
             round: room.round,
             roundAmount: room.roomConf.roundAmount,
+            gamberAmount: room.roomConf.gamberAmount,
         }
         NetUtil.sendMsg(userId, NetDefine.WS_Resp.G_PushRoomInfo, data);
     }
@@ -199,12 +200,16 @@ export default class GameNet {
         NetUtil.roomBroadcast(this.roomId, NetDefine.WS_Resp.G_LeaveRoom, data);
     }
 
-    G_UserState(userId: string, online: boolean) {
+    G_UserState(userId: string, online: boolean, syncUserId?: string) {
         let data = {
             userId: userId,
             online: online,
         }
-        NetUtil.userBroadcast(NetDefine.WS_Resp.G_UserState, data, userId);
+        if (syncUserId) {
+            NetUtil.sendMsg(syncUserId, NetDefine.WS_Resp.G_UserState, data);
+        } else {
+            NetUtil.userBroadcast(NetDefine.WS_Resp.G_UserState, data, userId);
+        }
     }
 
     G_GameState(state: any, syncUserId?: string) {
@@ -217,7 +222,6 @@ export default class GameNet {
     }
 
     G_GameOver(userId: string, data: any) {
-        console.log("xxxxxxxxxxxxxxxx", data);
         NetUtil.sendMsg(userId, NetDefine.WS_Resp.G_GameOver, data);
     }
 
@@ -257,5 +261,21 @@ export default class GameNet {
     G_ShowRaise(userId: string, bettingMin: number, bettingMax: number) {
         let data = { userId: userId, bettingMin: bettingMin, bettingMax: bettingMax };
         NetUtil.sendMsg(userId, NetDefine.WS_Resp.G_ShowRaise, data);
+    }
+
+    G_Chat(data: any) {
+        this.send(NetDefine.WS_Resp.G_Chat, data, data.receiveUserId);
+    }
+
+    G_QuickChat(data: any) {
+        this.send(NetDefine.WS_Resp.G_QuickChat, data, data.receiveUserId);
+    }
+
+    G_Emoji(data: any) {
+        this.send(NetDefine.WS_Resp.G_Emoji, data, data.receiveUserId);
+    }
+
+    G_Voice(data: any) {
+        this.send(NetDefine.WS_Resp.G_Voice, data, data.receiveUserId);
     }
 }

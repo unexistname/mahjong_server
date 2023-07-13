@@ -49,4 +49,5 @@ export default class GameEncry extends BaseEncry {
     static G_WatcherToGamber(msg: any) {
         msg.userName = this.encode(msg.userName);
     }
+
 }

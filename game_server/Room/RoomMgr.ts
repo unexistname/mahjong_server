@@ -234,6 +234,11 @@ export default class RoomMgr {
         if (user) {
             this.net.G_PushRoomInfo(this, user.userId);
             this.net.G_UpdateRoomOperate(this, user.userId);
+            for (let userId in this.gambers) {
+                if (!AllUserMgr.ins.isOnline(userId)) {
+                    this.net.G_UserState(userId, false, user.userId)
+                }
+            }
         }
     }
 
@@ -485,5 +490,25 @@ export default class RoomMgr {
     @ConditionFilter(ErrorCode.ROOM_IS_BEGIN)
     dissolve(userId: string) {
         this.net.G_Dissolve();
+    }
+
+    C_Chat(userId: string, data: any) {
+        data.userId = userId;
+        this.net.G_Chat(data);
+    }
+
+    C_QuickChat(userId: string, data: any) {
+        data.userId = userId;
+        this.net.G_QuickChat(data);
+    }
+
+    C_Emoji(userId: string, data: any) {
+        data.userId = userId;
+        this.net.G_Emoji(data);
+    }
+
+    C_Voice(userId: string, data: any) {
+        data.userId = userId;
+        this.net.G_Voice(data);
     }
 }

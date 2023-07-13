@@ -41,8 +41,13 @@ export default class HallEncry extends BaseEncry {
     static G_ShowRecord(msg: any) {
         for (let record of msg.records) {
             record.gameName = this.encode(record.gameName);
+            if (record.roomConf) {
+                record.roomConf = this.encode(record.roomConf);
+            }
             for (let user of record.users) {
-                user.userName = this.encode(user.userName);
+                if (user.userName) {
+                    user.userName = this.encode(user.userName);
+                }
             }
         }
     }

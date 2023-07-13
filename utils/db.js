@@ -468,6 +468,7 @@ exports.get_user_record = function(userId, callback) {
                     gameName: rows[i].type,
                     roomId: rows[i].roomId,
                     round: rows[i].numOfGames,
+                    roomConf: rows[i].config,
                     time: rows[i].time,
                     users: users
                 })

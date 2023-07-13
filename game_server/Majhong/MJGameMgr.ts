@@ -24,7 +24,6 @@ export default class MJGameMgr extends GameMgr {
     hun: number;
     net: MJNet;
     huns: number[];
-    bans: number[] = [];
     foldNum: number;
     chuPai: number;
     bankerId: string;
@@ -38,6 +37,7 @@ export default class MJGameMgr extends GameMgr {
 
     guoshoupeng: { [key: string]: any } = {};
     sortCard: boolean = true;
+    banJiangs: number[] = [];
 
     generateHun() {
         let hun = this.cardMgr.drawCard(true);
@@ -77,7 +77,7 @@ export default class MJGameMgr extends GameMgr {
 
     setGameInitData(data: any) {
         this.bankerId = data.winnerId || data.bankerId;
-        if (data.winnerId == data.bankerId) {
+        if (data.winnerId && data.winnerId == data.bankerId) {
             this.bankerTimes = data.bankerTimes + 1;
         } else {
             this.bankerTimes = 1;
@@ -149,6 +149,7 @@ export default class MJGameMgr extends GameMgr {
     saveGameLeftData(data: any = {}) {
         data.bankerId = this.bankerId;
         data.winnerId = this.winnerId;
+        data.bankerTimes = this.bankerTimes;
         super.saveGameLeftData(data);
     }
 
@@ -570,7 +571,11 @@ export default class MJGameMgr extends GameMgr {
 
     notifyOperate(gamber: MJGamberModel, operate: any, data: any = {}) {
         gamber.operates.push({operate: operate, value: data});
-        this.net.G_DoOperate(gamber.userId, operate, data);
+        if (operate == MJOperate.GUO) {
+            this.net.G_DoOperate(gamber.userId, operate, data, gamber.userId);
+        } else {
+            this.net.G_DoOperate(gamber.userId, operate, data);
+        }
         this.net.G_SyncHolds(gamber.userId, gamber.holds);
         LogUtil.debug("G_DoOperate", gamber.userId, operate, data, gamber.holds);
         this.recordMgr.recordOperate(gamber.userId, operate, data);
@@ -850,6 +855,11 @@ export default class MJGameMgr extends GameMgr {
     reconnectOnBetting(userId: string, gamber: GamberModel): void {
         for (let record of this.recordMgr.operateRecords) {
             this.net.G_DoOperate(record.userId, record.operate, record.value, userId);
+        }
+        for (let tmpGamber of this.gambers) {
+            for (let pai of tmpGamber.folds) {
+                this.net.G_Fold(tmpGamber.userId, pai, null, gamber.userId);
+            }
         }
         this.net.G_TurnPlayCard(this.turnGamber.userId, userId);
         this.net.G_SyncHolds(gamber.userId, gamber.holds, this.turnGamber == gamber);

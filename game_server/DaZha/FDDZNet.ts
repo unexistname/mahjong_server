@@ -1,11 +1,11 @@
 import { NetDefine } from "../../base_net/NetDefine";
-import NetUtil from "../../base_net/NetUtil";
 import GameNet from "../Game/GameNet";
 
 
 export default class FDDZNet extends GameNet {
     G_FriendCard(card: number, syncUserId?: string) {
         let data = { card: card };
+        console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzz", data);
         this.send(NetDefine.WS_Resp.G_FriendCard, data, syncUserId);
     }
 
