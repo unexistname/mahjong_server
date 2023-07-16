@@ -4,6 +4,7 @@ import LogUtil from "../../utils/LogUtil";
 import TimerTask from "../../utils/TimerTask";
 import { ErrorCode } from "../ErrorCode";
 import FDCardPointMgr from "../FuDing/FDCardPointMgr";
+import CardMgr from "../Game/CardMgr";
 import GamberModel from "../Game/GamberModel";
 import GameMgr from "../Game/GameMgr";
 import { GameConst } from "../GameConst";
@@ -21,9 +22,9 @@ export default class MJGameMgr extends GameMgr {
     wind: number;
     banker: MJGamberModel;
     canChi: boolean = true;
-    hun: number;
+    hun: number = -1;
     net: MJNet;
-    huns: number[];
+    huns: number[] = [];
     foldNum: number;
     chuPai: number;
     bankerId: string;
@@ -860,6 +861,7 @@ export default class MJGameMgr extends GameMgr {
             for (let pai of tmpGamber.folds) {
                 this.net.G_Fold(tmpGamber.userId, pai, null, gamber.userId);
             }
+            this.net.G_SyncCombines(tmpGamber.userId, tmpGamber.penggangs, gamber.userId);
         }
         this.net.G_TurnPlayCard(this.turnGamber.userId, userId);
         this.net.G_SyncHolds(gamber.userId, gamber.holds, this.turnGamber == gamber);
@@ -870,5 +872,13 @@ export default class MJGameMgr extends GameMgr {
 
     getAllState() {
         return [GameConst.GameState.IDLE, GameConst.GameState.DECIDE_BANKER, GameConst.GameState.DRAW_CARD, GameConst.GameState.BETTING, GameConst.GameState.SHOW_CARD, GameConst.GameState.SETTLE];
+    }
+
+    generateCardMgr(): CardMgr {
+        return new MJCardMgr();
+    }
+
+    generateGamber(): GamberModel {
+        return new MJGamberModel();
     }
 }

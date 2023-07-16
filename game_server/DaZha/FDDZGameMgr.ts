@@ -18,7 +18,7 @@ export default class FDDZGameMgr extends GameMgr {
     net:  FDDZNet;
     lastPlayGamber: GamberModel | null;
     folds: number[] = [];
-    fundPool: number;
+    fundPool: number = 0;
     winner: GamberModel;
     sortCard: boolean = true;
 
@@ -52,12 +52,11 @@ export default class FDDZGameMgr extends GameMgr {
             let friendIndex = (this.banker.seatIndex + 2) % this.gamberNum;
             this.bankerFriend = this.gambers[friendIndex];
         }
-        this.room.swapGamberSeat(this.bankerFriend.userId, this.banker.userId);
-        // if (Math.abs(this.bankerFriend.seatIndex - this.banker.seatIndex) != 2) {
-        //     let oppositeSeatIndex = (this.banker.seatIndex + 2) % this.gamberNum;
-        //     let oppositeGamber = this.gambers[oppositeSeatIndex];
-        //     this.room.swapGamberSeat(this.bankerFriend.userId, oppositeGamber.userId);
-        // }
+        if (Math.abs(this.bankerFriend.seatIndex - this.banker.seatIndex) != 2) {
+            let oppositeSeatIndex = (this.banker.seatIndex + 2) % this.gamberNum;
+            let oppositeGamber = this.gambers[oppositeSeatIndex];
+            this.room.swapGamberSeat(this.bankerFriend.userId, oppositeGamber.userId);
+        }
         this.net.G_Friend(this.banker.userId, this.bankerFriend.userId);
         this.updateGameState(GameConst.GameState.BETTING);
 
@@ -66,16 +65,33 @@ export default class FDDZGameMgr extends GameMgr {
 
     State_betting(gamber?: GamberModel) {
         this.turnGamber = gamber || this.getNextGamber(this.turnGamber);
-        if (this.lastPlayGamber = this.turnGamber) {
-            this.lastPlayGamber = null;
+        if (this.lastPlayGamber == this.turnGamber) {
+            setTimeout(() => {
+                if (this.lastPlayGamber == null) {
+                    return;
+                }
+                this.lastPlayGamber.scoreBetting += this.fundPool;
+                this.net.G_EatPoint(this.lastPlayGamber.userId, this.fundPool, this.lastPlayGamber.scoreBetting);
+                this.fundPool = 0;
+                this.lastPlayGamber = null;
+                this.betting();
+            }, 2000);
+        } else {
+            this.betting();
+        }
+    }
+
+    betting() {
+        if (this.turnGamber.holds.length <= 0) {
+            this.nextState();
+            return;
         }
         let op = this.getOptionalOperate(this.turnGamber);
         this.net.G_TurnBetting(this.turnGamber.userId, op);
-
         if (this.waiveWhenTimeout) {
             this.beginTimer(GameConst.GameTime.BETTING, () => {
                 if (this.lastPlayGamber == null) {
-                    this.C_PlayCard(this.turnGamber, [this.turnGamber.holds[0]]);
+                    this.C_PlayCard(this.turnGamber, [this.turnGamber.holds[this.turnGamber.holds.length - 1]]);
                 } else {
                     this.C_Waive(this.turnGamber);
                 }
@@ -117,10 +133,14 @@ export default class FDDZGameMgr extends GameMgr {
             }
         }
         gamber.discards(cards);
+        gamber.cardType = cardType;
+        this.cardMgr.sortCard(gamber.holds);
         this.folds = cards;
         this.fundPool += FDDZCardPointMgr.getFoldPoint(cards);
         this.lastPlayGamber = gamber;
+        this.net.G_Fold(gamber.userId, this.folds, cardType);
         this.notifyOperate(gamber, PlayCardOperate.PLAY, cards);
+        this.G_InitHolds();
         this.nextState();
     }
 
@@ -129,10 +149,6 @@ export default class FDDZGameMgr extends GameMgr {
     @ConditionFilter(ErrorCode.UNEXCEPT_OPERATE, PlayCardOperate.WAIVE)
     C_Waive(gamber: GamberModel) {
         this.notifyOperate(gamber, PlayCardOperate.WAIVE);
-        if (this.lastPlayGamber == this.getNextGamber(gamber)) {
-            this.lastPlayGamber.scoreBetting += this.fundPool;
-            this.fundPool = 0;
-        }
         this.nextState();
     }
 
@@ -141,7 +157,7 @@ export default class FDDZGameMgr extends GameMgr {
         let end = gamber.seatIndex + this.gamberNum;
         for (let i = start; i < end; ++i) {
             let index = i % this.gamberNum;
-            if (this.gambers[index].holds.length > 0) {
+            if (this.gambers[index] == this.lastPlayGamber || this.gambers[index].holds.length > 0) {
                 return this.gambers[index];
             }
         }
@@ -186,20 +202,26 @@ export default class FDDZGameMgr extends GameMgr {
             }
         }
         let friend = this.getFriend(this.winner);
-        let betting = friend.scoreBetting + this.winner.score;
+        let betting = friend.scoreBetting + this.winner.scoreBetting;
         let score = this.roomConf.baseScore;
         if (betting >= 200) {
             score *= 2;
         } else if (betting < 100) {
             score *= -1;
         }
-        this.winner.score += score;
-        friend.score += score;
+        this.changeGamberScore(this.winner, score, false);
+        this.changeGamberScore(friend, score, false);
         for (let gamber of this.gambers) {
             if (gamber == this.winner || friend == gamber) {
                 continue;
             }
-            gamber.score -= score;
+            this.changeGamberScore(gamber, -score, false);
+        }
+    }
+
+    getSettleExtraData(gamber: GamberModel) {
+        return {
+            point: gamber.scoreBetting,
         }
     }
 

@@ -343,6 +343,8 @@ export default class GameMgr {
     }
 
     swapGamberSeat(seatIndex: number, anotherSeatIndex: number) {
+        this.gambers[seatIndex].seatIndex = anotherSeatIndex;
+        this.gambers[anotherSeatIndex].seatIndex = seatIndex;
         GameUtil.swap(this.gambers, seatIndex, anotherSeatIndex);
     }
 
@@ -494,7 +496,6 @@ export default class GameMgr {
     }
 
     changeFundPool(changeScore: number) {
-        // if (changeScore == 0) return;
         this.fundPool += changeScore;
         this.net.G_FundPoolChange(this.fundPool);
     }
@@ -506,7 +507,6 @@ export default class GameMgr {
     reconnect(userId: string) {
         let gamber = this.getGamberByUserId(userId);
         if (gamber == null) {
-            console.log("玩家不存在", userId)
             return ErrorCode.UNKOWN_GAMBER;
         }
         for (let state of this.getAllState()) {

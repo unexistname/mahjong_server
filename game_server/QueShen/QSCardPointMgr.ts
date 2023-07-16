@@ -2,7 +2,6 @@ import { GameConst } from "../GameConst";
 import MJGameMgr from "../Majhong/MJGameMgr";
 import MJCardPointMgr from "../Majhong/MJCardPointMgr";
 import MJGamberModel from "../Majhong/MJGamberModel";
-import LogUtil from "../../utils/LogUtil";
 
 const checkHu = require("../Majhong/checkHu");
 

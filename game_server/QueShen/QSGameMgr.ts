@@ -1,7 +1,9 @@
 import GameUtil from "../../utils/GameUtil";
+import CardMgr from "../Game/CardMgr";
 import { GameConst } from "../GameConst";
 import MJGamberModel from "../Majhong/MJGamberModel";
 import MJGameMgr from "../Majhong/MJGameMgr";
+import QSCardMgr from "./QSCardMgr";
 import QSCardPointMgr from "./QSCardPointMgr";
 
 
@@ -25,8 +27,7 @@ export default class QSGameMgr extends MJGameMgr {
                 }
             }
         }
-        this.generateHun();
-        
+                
         this.net.G_DecideBanker(this.bankerId, this.getGamberIds());
         this.nextState();
     }
@@ -34,5 +35,10 @@ export default class QSGameMgr extends MJGameMgr {
     updateCanHu(gamber: MJGamberModel, targetCard: number) {
         gamber.pattern = QSCardPointMgr.getHuPattern(this, gamber, targetCard);
         gamber.canHu = gamber.pattern != GameConst.HuType.NONE;
+    }
+    
+
+    generateCardMgr(): CardMgr {
+        return new QSCardMgr();
     }
 }

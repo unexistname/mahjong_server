@@ -105,6 +105,7 @@ export namespace NetDefine {
         G_RobBanker,
         G_Rob,
         G_Betting,
+        G_EatPoint,
         
         G_UserState,
         G_GameState,
@@ -149,6 +150,7 @@ export namespace NetDefine {
         G_BaseHu,
         G_Fold,
         G_SyncHolds,
+        G_SyncCombines,
 
         G_FriendCard,
         G_Friend,

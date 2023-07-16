@@ -27,6 +27,11 @@ export default class MJNet extends GameNet {
         this.send(NetDefine.WS_Resp.G_Hun, data, syncUserId);
     }
 
+    G_SyncCombines(userId: string, penggangs: number[], syncUserId?: string) {
+        let data = { userId: userId, penggangs: penggangs };
+        this.send(NetDefine.WS_Resp.G_SyncCombines, data, syncUserId);
+    }
+
     G_SyncHolds(userId: string, holds: number[], isDrawCard: boolean = false) {
         console.log("[G_SyncHolds] begin", holds);
         let data: any = {userId: userId, holds: holds};

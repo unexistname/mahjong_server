@@ -17,9 +17,8 @@ gameServer.launch();
 var adminServer = require('./admin_server/adminServer');
 var downloadServer = require('./download_server/downloadServer');
 
+
 const { default: LogUtil } = require('./utils/LogUtil');
 process.on('uncaughtException', (err) => {
-    let db = require('./utils/db');
     LogUtil.error("[Launch Error]" + ' Caught exception: ' + err.stack);
-    LogUtil.error("[Last SQL]: " + db.lastSql);
 });

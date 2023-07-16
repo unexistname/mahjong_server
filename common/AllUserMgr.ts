@@ -164,7 +164,7 @@ export default class AllUserMgr {
         db.is_user_exist(info.account, (ret: any) => {
             if(!ret){
                 info.coins = 0;
-                info.gems = 0;
+                info.gems = 100;
                 info.roomCard = 0;
                 db.create_user(info, (ret: any) => {
                     callback(ret);

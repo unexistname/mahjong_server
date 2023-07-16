@@ -108,14 +108,17 @@ export default class RoomMgr {
     }
 
     swapGamberSeat(userId: string, anotherUserId: string) {
+        console.log("&&&&&&&&&&&&&&&&&", this.gambers)
         let gamber = this.gambers[userId];
         let anotherGamber = this.gambers[anotherUserId];
         let tmpSeatIndex = gamber.seatIndex;
         gamber.seatIndex = anotherGamber.seatIndex;
         anotherGamber.seatIndex = tmpSeatIndex;
+        console.log("*****************", this.gambers)
         this.seats[gamber.seatIndex] = userId;
         this.seats[anotherGamber.seatIndex] = anotherUserId;
         this.net.G_SwapSeat(userId, gamber.seatIndex, anotherUserId, anotherGamber.seatIndex);
+
         if (this.game) {
             this.game.swapGamberSeat(gamber.seatIndex, anotherGamber.seatIndex);
         }
@@ -236,7 +239,7 @@ export default class RoomMgr {
             this.net.G_UpdateRoomOperate(this, user.userId);
             for (let userId in this.gambers) {
                 if (!AllUserMgr.ins.isOnline(userId)) {
-                    this.net.G_UserState(userId, false, user.userId)
+                    this.net.G_UserState(userId, false, user.userId);
                 }
             }
         }

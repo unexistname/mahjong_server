@@ -116,6 +116,9 @@ export default class AllRoomMgr {
     @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)
     C_EnterRoom(userId: string, roomId: string) {
         let room = this.rooms[roomId];
+        if (room.getRoomUser(userId) != null) {
+            return ErrorCode.SUCCESS;
+        }
         
         if (room.isRoomFull() && !room.canJoinHalfway()) {
             return ErrorCode.ROOM_IS_FULL;

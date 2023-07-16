@@ -108,7 +108,6 @@ export default class PDKCardPointMgr extends PokerCardPointMgr {
             return false;
         }
         let cnt = this.getSameCardValueCnt(cards);
-        console.log("aaaaaaaaaa", cards, cnt);
         return cnt[1] && cnt[3];
     }
 

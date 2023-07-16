@@ -121,9 +121,8 @@ export default class FDDZCardPointMgr extends PokerCardPointMgr {
             if (value > maxValue) {
                 maxValue = value;
             }
-            dict[value] += 1;
+            dict[value] = dict[value] ? dict[value] + 1 : 1;
         }
-        
         let straightLen = maxValue - minValue + 1;
         if (cards.length % straightLen != 0) {
             return false;
@@ -206,7 +205,7 @@ export default class FDDZCardPointMgr extends PokerCardPointMgr {
                 return cards.length * 1000 + point;
             }
         } else if (this.isGhostBomb(cards)) {
-            cards.sort(this.isBetterCard);
+            cards.sort(this.isBetterCard.bind(this));
             let point = this.getCardPoint(cards[0]);
             return cards.length * 1000 + point;
         }
@@ -235,8 +234,8 @@ export default class FDDZCardPointMgr extends PokerCardPointMgr {
                 let cardValue2 = this.getBombValue(cards2);
                 return cardValue1 < cardValue2;
             } else {
-                cards1.sort(this.isBetterCard);
-                cards2.sort(this.isBetterCard);
+                cards1.sort(this.isBetterCard.bind(this));
+                cards2.sort(this.isBetterCard.bind(this));
                 return this.isBetterCard(cards1[0], cards2[0]) > 0;
             }
         }
