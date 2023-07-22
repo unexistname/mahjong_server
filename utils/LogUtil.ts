@@ -1,4 +1,5 @@
 
+var logger = require("./logger");
 
 export default class LogUtil {
     
@@ -12,5 +13,6 @@ export default class LogUtil {
 
     static error(...args: any[]) {
         console.error(...args);
+        logger.error_log(...args);
     }
 }

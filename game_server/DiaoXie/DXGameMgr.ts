@@ -60,13 +60,14 @@ export default class DXGameMgr extends GameMgr {
     }
 
     initGame() {
-        super.initGame();
 
         this.rubCards = {};
         this.dealCompensate();
         this.bankerOnlyEat = this.fundPool == 0;
         this.dealFundPool();
         this.beltNowCost = this.fundPool;
+
+        super.initGame();
     }
 
     State_decideBanker() {
@@ -166,7 +167,7 @@ export default class DXGameMgr extends GameMgr {
         if (this.isReverseBeltMode) {
             // 反带模式下
             // 1. 除了头家，其他全弃，再轮到头家就结束
-            // 2. 除了最后一家，其他全弃，轮到最后一家就结束
+            // 2. 头家弃牌，轮到最后一家就结束
             // 3. 头家第二次操作完毕，结束
             if (nextGamber == this.banker) {
                 if (this.otherAllEliminate(this.banker)) {
@@ -174,7 +175,7 @@ export default class DXGameMgr extends GameMgr {
                 }
             }
             if (this.getNextGamber(nextGamber) == this.banker) {
-                if (this.otherAllEliminate(nextGamber)) {
+                if (this.banker.eliminate) {
                     return true;
                 }
             }
@@ -213,7 +214,11 @@ export default class DXGameMgr extends GameMgr {
         let winner = null;
         let mayBeLose = false;      // 这个是为了处理庄家手牌和闲家手牌一样是最大，然后庄家第二次选择不带的情况
         let totalLoseScore = 0;
-        for (let gamber of this.gambers) {
+        let winnerScore = 0;
+        let start = this.banker.seatIndex;
+        for (let i = start; i < start + this.gamberNum; ++i) {
+            let index = i % this.gamberNum;
+            let gamber = this.gambers[index];
             let value = gamber.cardValue = DXCardPointMgr.calculate(gamber.holds);
 
             if (gamber.eliminate) {
@@ -228,7 +233,7 @@ export default class DXGameMgr extends GameMgr {
             } else if (value == winner.cardValue) {
                 mayBeLose = true;
             }
-            totalLoseScore += gamber.scoreBetting;
+            totalLoseScore += gamber.scoreBetting + gamber.scoreReverse;
         }
         if (winner == null) {
             return;
@@ -237,38 +242,38 @@ export default class DXGameMgr extends GameMgr {
             mayBeLose = false;
         }
         if (mayBeLose) {
-            winner.scoreBetting -= winner.scoreReverse;
+            winnerScore = winner.scoreBetting;
+            // winner.scoreBetting -= winner.scoreReverse;
+        } else {
+            winnerScore = winner.scoreBetting + winner.scoreReverse;
         }
 
-        if (winner.scoreBetting >= this.fundPool) {
+        if (winnerScore >= this.fundPool) {
             // 计算赔底
             for (let gamber of this.gambers) {
                 if (gamber.eliminate && gamber.cardValue > winner.cardValue) {
-                    gamber.compensate = winner.scoreBetting;
+                    gamber.compensate = winnerScore;
                 }
             }
         }
 
-        totalLoseScore -= winner.scoreBetting;
-        if (totalLoseScore < winner.scoreBetting) {
-            winner.scoreBetting = Math.min(winner.scoreBetting, this.fundPool + totalLoseScore);
+        totalLoseScore -= winnerScore;
+        if (totalLoseScore < winnerScore) {
+            winnerScore = Math.min(winnerScore, this.fundPool + totalLoseScore);
         }
-        this.changeFundPool(totalLoseScore - winner.scoreBetting);
+        this.changeFundPool(totalLoseScore - winnerScore);
         
         for (let gamber of this.gambers) {
             if (gamber.eliminate) {
                 continue;
             }
             if (winner != gamber) {
-                // gamber.score -= gamber.scoreBetting;
-                this.changeGamberScore(gamber, -gamber.scoreBetting);
+                this.changeGamberScore(gamber, -(gamber.scoreBetting + gamber.scoreReverse));
             } else {
-                let score = winner.scoreBetting;
+                let score = winnerScore;
                 if (mayBeLose) {
                     score -= winner.scoreReverse;
-                    winner.scoreBetting += gamber.scoreReverse;
                 }
-                // winner.score += score;
                 this.changeGamberScore(winner, score);
             }
         }
@@ -276,12 +281,12 @@ export default class DXGameMgr extends GameMgr {
         for (let king of this.gambers) {
             // 皇帝对奖励
             if (king.cardValue == 1000) {
-                let kingScore = this.roomConf.baseScore * this.gamberNum;
+                let kingScore = this.baseScore * this.gamberNum;
                 for (let gamber of this.gambers) {
                     if (king == gamber) {
                         this.changeGamberScore(king, kingScore * (this.gamberNum - 1));
                     } else {
-                        this.changeGamberScore(gamber, kingScore);
+                        this.changeGamberScore(gamber, -kingScore);
                     }
                 }
             }
@@ -301,14 +306,14 @@ export default class DXGameMgr extends GameMgr {
     @ConditionFilter(ErrorCode.NOT_YOUR_TURN)
     @ConditionFilter(ErrorCode.UNEXCEPT_OPERATE, DXOperate.TOUCH)
     C_ShowTouch(gamber: GamberModel) {
-        this.net.G_ShowTouch(gamber.userId, this.roomConf.baseScore, this.fundPool - this.roomConf.baseScore);
+        this.net.G_ShowTouch(gamber.userId, this.baseScore, this.fundPool - this.baseScore);
     }
 
     @ConditionFilter(ErrorCode.GAME_STATE_ERROR, GameConst.GameState.BETTING)
     @ConditionFilter(ErrorCode.NOT_YOUR_TURN)
     @ConditionFilter(ErrorCode.UNEXCEPT_OPERATE, DXOperate.TOUCH)
     C_Touch(gamber: GamberModel, scoreBetting: number) {
-        if (scoreBetting > this.fundPool - this.roomConf.baseScore || scoreBetting < this.roomConf.baseScore) {
+        if (scoreBetting > this.fundPool - this.baseScore || scoreBetting < this.baseScore) {
             return ErrorCode.BETTING_SCORE_ERROR;
         }
         this.betting(<DXGamberModel>gamber, DXOperate.TOUCH, scoreBetting);
@@ -399,10 +404,10 @@ export default class DXGameMgr extends GameMgr {
 
     // 处理投底
     dealFundPool() {
-        if (this.fundPool < this.gamberNum * this.roomConf.baseScore) {
+        if (this.fundPool < this.gamberNum * this.baseScore) {
             for (let gamber of this.gambers) {
-                this.changeFundPool(this.roomConf.baseScore);
-                this.changeGamberScore(gamber, -this.roomConf.baseScore);
+                this.changeFundPool(this.baseScore);
+                this.changeGamberScore(gamber, -this.baseScore);
             }
         }
     }
@@ -423,19 +428,17 @@ export default class DXGameMgr extends GameMgr {
     }
 
     getAllState() {
-        return [GameConst.GameState.IDLE, GameConst.GameState.DECIDE_BANKER, GameConst.GameState.DRAW_CARD, GameConst.GameState.BETTING, GameConst.GameState.SHOW_CARD, GameConst.GameState.SETTLE];
+        return [
+            GameConst.GameState.IDLE, 
+            GameConst.GameState.DECIDE_BANKER, 
+            GameConst.GameState.DRAW_CARD, 
+            GameConst.GameState.BETTING, 
+            GameConst.GameState.SHOW_CARD, 
+            GameConst.GameState.SETTLE
+        ];
     }
 
     canPlayHalfway() {
         return this.isRoundOver();
     }
-
-    // changeGamberScore(gamber: GamberModel, changeScore: number, isBetting: boolean = false) {
-    //     // gamber.score += changeScore;
-    //     if (isBetting) {
-    //         gamber.scoreBetting -= changeScore;
-    //         gamber.scoreBettings.push(-changeScore);
-    //     }
-    //     this.net.G_GamberScoreChange(gamber.userId, changeScore, gamber.score, gamber.scoreBetting);
-    // }
 }

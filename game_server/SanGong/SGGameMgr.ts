@@ -51,7 +51,7 @@ export default class SGGameMgr extends GameMgr {
     }
 
     settle(): void {
-        let baseScore = this.roomConf.baseScore;
+        let baseScore = this.baseScore;
         let banker = this.banker;
         let bankerValue = SGCardPointMgr.calculate(banker.holds);
         let bankerFactor = SGCardPointMgr.getCardTypeFactor(banker.holds);

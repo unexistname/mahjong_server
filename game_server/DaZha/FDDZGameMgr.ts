@@ -121,14 +121,14 @@ export default class FDDZGameMgr extends GameMgr {
             }
         }
         if (cardType == CARD_TYPE.BOMB) {
-            let score = FDDZCardPointMgr.getBonusFactor(cards) * this.roomConf.baseScore;
+            let score = FDDZCardPointMgr.getBonusFactor(cards) * this.baseScore;
             if (score > 0) {
                 for (let otherGamber of this.gambers) {
                     if (otherGamber == gamber) {
                         continue;
                     }
-                    otherGamber.score -= score;
-                    gamber.score += score;
+                    this.changeGamberScore(otherGamber, -score);
+                    this.changeGamberScore(gamber, score);
                 }
             }
         }
@@ -203,7 +203,7 @@ export default class FDDZGameMgr extends GameMgr {
         }
         let friend = this.getFriend(this.winner);
         let betting = friend.scoreBetting + this.winner.scoreBetting;
-        let score = this.roomConf.baseScore;
+        let score = this.baseScore;
         if (betting >= 200) {
             score *= 2;
         } else if (betting < 100) {
@@ -257,7 +257,14 @@ export default class FDDZGameMgr extends GameMgr {
     }
 
     getAllState() {
-        return [GameConst.GameState.IDLE, GameConst.GameState.DECIDE_BANKER, GameConst.GameState.DRAW_CARD, GameConst.GameState.BETTING, GameConst.GameState.SHOW_CARD, GameConst.GameState.SETTLE];
+        return [
+            GameConst.GameState.IDLE, 
+            GameConst.GameState.DECIDE_BANKER, 
+            GameConst.GameState.DRAW_CARD, 
+            GameConst.GameState.BETTING, 
+            GameConst.GameState.SHOW_CARD, 
+            GameConst.GameState.SETTLE
+        ];
     }
 
     getBrightCardNum(): number {

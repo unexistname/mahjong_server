@@ -132,12 +132,22 @@ export default class PDKGameMgr extends GameMgr {
     }
 
     settle(): void {
+        let winner = null;
+        let winScore = 0;
         for (let gamber of this.gambers) {
             if (gamber.holds.length == 0) {
-                this.changeGamberScore(gamber, this.roomConf.baseScore * (this.gamberNum - 1));
+                winner = gamber;
             } else {
-                this.changeGamberScore(gamber, -this.roomConf.baseScore);
+                let score = gamber.holds.length;
+                if (gamber.holds.length == this.getBrightCardNum()) {
+                    score = 30;
+                }
+                winScore += score;
+                this.changeGamberScore(gamber, -score);
             }
+        }
+        if (winner) {
+            this.changeGamberScore(winner, winScore);
         }
     }
 

@@ -2,6 +2,7 @@ import AllUserMgr from "../../common/AllUserMgr";
 import UserModel from "../../common/UserModel";
 import { ConditionFilter } from "../../utils/ConditionFilter";
 import GameUtil from "../../utils/GameUtil";
+import TimerTask from "../../utils/TimerTask";
 import FDDZGameMgr from "../DaZha/FDDZGameMgr";
 import FDDZNet from "../DaZha/FDDZNet";
 import DZGameMgr from "../DeZhou/DZGameMgr";
@@ -24,6 +25,7 @@ import SSSGameMgr from "../ShiSanShui/SSSGameMgr";
 import SSSNet from "../ShiSanShui/SSSNet";
 import ZJHGameMgr from "../ZhaJinHua/ZJHGameMgr";
 import ZJHNet from "../ZhaJinHua/ZJHNet";
+import AllRoomMgr from "./AllRoomMgr";
 import RoomConfModel from "./RoomConfModel";
 import RoomUserModel from "./RoomUserModel";
 
@@ -43,6 +45,8 @@ export default class RoomMgr {
     offlineUsers: { [key: string]: number };
     offlineTimeoutUserList: string[];
     offlineTimer: any;
+    dissolveVotes: { [key: string]: boolean };
+    dissolveVoteTimer: TimerTask;
 
     gameLeftData: any;
     record: any;
@@ -54,6 +58,7 @@ export default class RoomMgr {
         this.seats = {};
         this.gambers = {};
         this.watchers = {};
+        this.dissolveVotes = {};
         this.kickUserList = [];
         this.offlineUsers = {};
         this.offlineTimeoutUserList = [];
@@ -61,6 +66,7 @@ export default class RoomMgr {
         this.net = new GameNet(roomId);
         this.round = 0;
         this.createTime = Date.now();
+        this.dissolveVoteTimer = new TimerTask();
         this.owner = this.addUser(owner);
     }
 
@@ -108,13 +114,11 @@ export default class RoomMgr {
     }
 
     swapGamberSeat(userId: string, anotherUserId: string) {
-        console.log("&&&&&&&&&&&&&&&&&", this.gambers)
         let gamber = this.gambers[userId];
         let anotherGamber = this.gambers[anotherUserId];
         let tmpSeatIndex = gamber.seatIndex;
         gamber.seatIndex = anotherGamber.seatIndex;
         anotherGamber.seatIndex = tmpSeatIndex;
-        console.log("*****************", this.gambers)
         this.seats[gamber.seatIndex] = userId;
         this.seats[anotherGamber.seatIndex] = anotherUserId;
         this.net.G_SwapSeat(userId, gamber.seatIndex, anotherUserId, anotherGamber.seatIndex);
@@ -156,7 +160,7 @@ export default class RoomMgr {
             if (this.game) {
                 this.beginGame(this.owner.userId);
             }
-        } else if (isReady && !this.isRoomFull() && this.roomConf.canJoinHalfway) {
+        } else if (isReady && !this.isRoomFull() && this.canJoinHalfway()) {
             let watcher = this.watchers[userId];
             if (watcher) {
                 
@@ -178,13 +182,13 @@ export default class RoomMgr {
         if (this.getGamberAmount() < this.getMinBeginGameGamberAmount()) {
             return ErrorCode.GAMBER_NOT_ENOUGH;
         }
-        this.roomState = GameConst.RoomState.PLAY;
         if (!this.game || this.game.isRoundOver()) {
             let code = this.payCost();
             if (!GameUtil.isSuccessCode(code)) {
                 return code;
             }
         }
+        this.roomState = GameConst.RoomState.PLAY;
         this.updateRound();
         let gambers = this.getGambers();
 
@@ -192,10 +196,48 @@ export default class RoomMgr {
         this.game.beginGame(gambers);
     }
 
-    @ConditionFilter(ErrorCode.ROOM_IS_BEGIN)
+    C_DissolveVote(userId: string, vote: boolean) {
+        if (this.dissolveVotes[userId] != null) {
+            return;
+        }
+        this.dissolveVotes[userId] = vote;
+        this.net.G_DissolveVote(userId, vote);
+
+        if (this.getGamberAmount() == Object.keys(this.dissolveVotes).length) {
+            this.dissolveVoteTimer.doTask();
+        }
+    }
+
+    endDissolveVote() {
+        let total = 0, agree = 0;
+        for (let useId in this.dissolveVotes) {
+            total += 1;
+            if (this.dissolveVotes[useId]) {
+                agree += 1;
+            }
+        }
+        this.dissolveVotes = {};
+        let isDissolve = agree * 2 >= total;
+        this.net.G_DissolveResult(isDissolve);
+        if (isDissolve) {
+            this.net.G_Dissolve();
+            AllRoomMgr.ins.delRoom(this.roomId);
+        }
+    }
+
+    beginDissolveVote(userId: string) {
+        this.net.G_ShowDissolveVote();
+        this.dissolveVoteTimer.beginTask(
+            this.endDissolveVote.bind(this), 
+            GameConst.GameTime.DISSOLVE_VOTE);
+        this.C_DissolveVote(userId, true);
+    }
+
+    @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)
     C_LeaveRoom(userId: string) {
-        if (this.isPlaying()) {
-            return ErrorCode.ROOM_IS_BEGIN;
+        if (this.isBegin()) {
+            this.beginDissolveVote(userId);
+            return;
         }
         if (this.owner.userId == userId) {
             this.net.G_ShowDissolve(userId);
@@ -240,6 +282,12 @@ export default class RoomMgr {
             for (let userId in this.gambers) {
                 if (!AllUserMgr.ins.isOnline(userId)) {
                     this.net.G_UserState(userId, false, user.userId);
+                }
+            }
+            if (Object.keys(this.dissolveVotes).length > 0) {
+                this.net.G_ShowDissolveVote();
+                for (let userId in this.dissolveVotes) {
+                    this.net.G_DissolveVote(userId, this.dissolveVotes[userId], userId);
                 }
             }
         }
@@ -293,7 +341,7 @@ export default class RoomMgr {
     }
 
     isPlaying() {
-        return this.game && this.game.gameState != GameConst.GameState.IDLE;
+        return this.game != null;// && this.game.gameState != GameConst.GameState.IDLE;
         // return this.roomState == GameConst.RoomState.PLAY;
     }
 

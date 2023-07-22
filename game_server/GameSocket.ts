@@ -32,6 +32,10 @@ export default class GameSocket extends BaseSocket {
         return AllRoomMgr.ins.C_BeginGame(ws.userId);
     }
 
+    static C_DissolveVote(ws: any, msg: any) {
+        return AllRoomMgr.ins.C_DissolveVote(ws.userId, msg.vote);
+    }
+
     static C_Emoji(ws: any, msg: any) {
         return AllRoomMgr.ins.C_Emoji(ws.userId, msg);
     }

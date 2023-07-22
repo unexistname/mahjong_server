@@ -21,11 +21,15 @@ export default class HallHttp extends BaseHttp {
         this.send(res, data);
     }
 
+    static C_ShowRecharge(res: any, msg: any) {
+        this.send(res, RechargeMgr.ins.getAllRecharge());
+    }
+
     static C_Pay(res: any, msg: any) {
         LogUtil.debug(`[HallHttp C_Pay] data= ${msg}`);
 
         let rechargeId = msg.recharge_id;
-        let recharge = RechargeMgr.getRecharge(rechargeId);
+        let recharge = RechargeMgr.ins.getRecharge(rechargeId);
         if (recharge == null) {
             this.sendError(res, ErrorCode.UNEXIST_SERIES);
             return;
@@ -89,7 +93,7 @@ export default class HallHttp extends BaseHttp {
                     code = ErrorCode.UNEXIST_ORDER;
                 } else if (order.state == 1) {
                     code = ErrorCode.ORDER_ALREADY_PURCHASE;
-                } else if (!RechargeMgr.isPriceCorrect(rechargeId, payMoney)) {
+                } else if (!RechargeMgr.ins.isPriceCorrect(rechargeId, payMoney)) {
                     code = ErrorCode.ORDER_PRICE_ERROR;
                 } else {
                     let orderDBData = {
@@ -101,7 +105,7 @@ export default class HallHttp extends BaseHttp {
                         state: 1,
                     }
                     db.update_order(orderDBData, function() {
-                        RechargeMgr.add_recharge(userId, rechargeId);
+                        RechargeMgr.ins.add_recharge(userId, rechargeId);
                     });
                 }
                 payOver(code, orderData);

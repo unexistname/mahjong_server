@@ -27,17 +27,17 @@ export default class GameNet {
         NetUtil.sendMsg(userId, NetDefine.WS_Resp.G_ShowDissolve);
     }
 
-    GA_ShowReplaceCard(userId: string, heap: number[]) {
-        let data = { heap: heap };
+    GA_ShowReplaceCard(userId: string, holds: number[], heap: number[]) {
+        let data = { holds: holds, heaps: heap };
         NetUtil.sendMsg(userId, NetDefine.WS_Resp.GA_ShowReplaceCard, data);
     }
 
     GA_ReplaceCard(userId: string, holds: number[], heap: number[]) {
-        let data = { holds: holds, heap: heap };
+        let data = { holds: holds, heaps: heap };
         NetUtil.sendMsg(userId, NetDefine.WS_Resp.GA_ReplaceCard, data);
     }
 
-    GA_Perspect(userId: string, data: any[]) {
+    GA_Perspect(userId: string, data: any) {
         NetUtil.sendMsg(userId, NetDefine.WS_Resp.GA_Perspect, data);
     }
 
@@ -83,8 +83,7 @@ export default class GameNet {
         this.send(NetDefine.WS_Resp.G_ShowCard, data, syncUserId);
     }
 
-    G_DecideWind(windId: string, syncUserId?: string) {
-        let data = { windId: windId }
+    G_DecideWind(data: any, syncUserId?: string) {
         this.send(NetDefine.WS_Resp.G_DecideWind, data, syncUserId);
     }
 
@@ -126,6 +125,15 @@ export default class GameNet {
             time: time
         }
         NetUtil.roomBroadcast(this.roomId, NetDefine.WS_Resp.G_UpdateTimer, data);
+    }
+
+    G_ShowDissolveVote() {
+        NetUtil.roomBroadcast(this.roomId, NetDefine.WS_Resp.G_ShowDissolveVote, {});
+    }
+
+    G_DissolveVote(userId: string, vote: boolean, syncUserId?: string) {
+        let data = { userId: userId, vote: vote };
+        this.send(NetDefine.WS_Resp.G_DissolveVote, data, syncUserId);
     }
     
     G_Ready(userId: string, isReady: boolean) {
@@ -215,6 +223,11 @@ export default class GameNet {
     G_GameState(state: any, syncUserId?: string) {
         let data = { gameState: state };
         this.send(NetDefine.WS_Resp.G_GameState, data, syncUserId);
+    }
+
+    G_DissolveResult(result: boolean) {
+        let data = { result: result };
+        NetUtil.roomBroadcast(this.roomId, NetDefine.WS_Resp.G_DissolveResult, data);
     }
 
     G_Dissolve() {

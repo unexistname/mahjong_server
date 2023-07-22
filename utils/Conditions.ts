@@ -58,11 +58,11 @@ conditions[ErrorCode.GAME_STATE_ERROR] = (game: GameMgr, targetState: GameConst.
     }
 }
 
-conditions[ErrorCode.ROOM_IS_UNEXIST] = (allRoomMgr: AllRoomMgr, userId: string, roomId: string) => {
-    if (typeof roomId == "string" && allRoomMgr.getRoom(roomId)) {
+conditions[ErrorCode.ROOM_IS_UNEXIST] = (allRoomMgr: any, userId: string, roomId: string) => {
+    if (typeof roomId == "string" && AllRoomMgr.ins.getRoom(roomId)) {
         return ErrorCode.SUCCESS;
     }
-    if (allRoomMgr.getRoomByUserId(userId)) {
+    if (AllRoomMgr.ins.getRoomByUserId(userId)) {
         return ErrorCode.SUCCESS;
     }
     return ErrorCode.ROOM_IS_UNEXIST;

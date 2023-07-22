@@ -38,6 +38,19 @@ export default class ZJHGameMgr extends GameMgr {
         return 3;
     }
 
+    initGame() {
+        super.initGame();
+        this.dealFundPool();
+    }
+
+    // 处理投底
+    dealFundPool() {
+        for (let gamber of this.gambers) {
+            this.changeFundPool(this.baseScore);
+            this.changeGamberScore(gamber, -this.baseScore);
+        }
+    }
+
     setGameInitData(data: any): void {
         this.bankerId = data.winnerId || data.bankerId;
     }
@@ -57,8 +70,8 @@ export default class ZJHGameMgr extends GameMgr {
         } else {
             this.net.G_DecideBanker(this.bankerId, []);
         }
-        this.callNowCost = this.roomConf.baseScore;
-        this.betTop = this.roomConf.baseScore * 50;
+        this.callNowCost = this.baseScore;
+        this.betTop = this.baseScore * 50;
         this.nextState();
     }
 
@@ -258,6 +271,20 @@ export default class ZJHGameMgr extends GameMgr {
         return true;
     }
 
+    reconnectOverDrawCard(userId: string) {
+        let holds: { [key: string]: any[] } = {};
+        for (let gamber of this.gambers) {
+            holds[gamber.userId] = GameUtil.deepClone(gamber.holds);
+            if (gamber.userId == userId && gamber.watchCardRound != null) {
+                continue;
+            }
+            for (let i = gamber.holds.length - this.getDarkCardNum(); i < gamber.holds.length; ++i) {
+                holds[gamber.userId][i] = -1;
+            }
+        }
+        this.net.G_InitHolds(holds, userId);
+    }
+
     settle() {
         let winner = null;
         let winValue = 0;
@@ -293,7 +320,14 @@ export default class ZJHGameMgr extends GameMgr {
     }
 
     getAllState() {
-        return [GameConst.GameState.IDLE, GameConst.GameState.DECIDE_BANKER, GameConst.GameState.DRAW_CARD, GameConst.GameState.BETTING, GameConst.GameState.SHOW_CARD, GameConst.GameState.SETTLE];
+        return [
+            GameConst.GameState.IDLE, 
+            GameConst.GameState.DECIDE_BANKER, 
+            GameConst.GameState.DRAW_CARD, 
+            GameConst.GameState.BETTING, 
+            GameConst.GameState.SHOW_CARD, 
+            GameConst.GameState.SETTLE
+        ];
     }
     
 }

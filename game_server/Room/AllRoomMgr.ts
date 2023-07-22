@@ -8,6 +8,7 @@ import { ErrorCode } from "../ErrorCode";
 import RoomConfModel from "./RoomConfModel";
 import RoomMgr from "./RoomMgr";
 import RoomNet from "./RoomNet";
+import LogUtil from "../../utils/LogUtil";
 
 
 export default class AllRoomMgr {
@@ -27,7 +28,7 @@ export default class AllRoomMgr {
 
     addRoom(room: RoomMgr) {
         this.rooms[room.roomId] = room;
-        console.log("创建房间", this.rooms, room.roomId);
+        LogUtil.debug("创建房间", this.rooms, room.roomId);
         HallSocket.broadcast(NetDefine.WS_Resp.G_RoomAdd, room);
     }
 
@@ -87,6 +88,12 @@ export default class AllRoomMgr {
     C_BeginGame(userId: string) {
         let room = this.getRoomByUserId(userId);
         return room && room.beginGame(userId);
+    }
+
+    @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)
+    C_DissolveVote(userId: string, vote: boolean) {
+        let room = this.getRoomByUserId(userId);
+        return room && room.C_DissolveVote(userId, vote);
     }
 
     @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)

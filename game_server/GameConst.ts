@@ -37,6 +37,7 @@ export namespace GameConst {
         static BETTING = 15;
         static SHOW_CARD = 5;
         static MJ_OPERATE = 10;
+        static DISSOLVE_VOTE = 30;
     }
 
     export class RoomTime {

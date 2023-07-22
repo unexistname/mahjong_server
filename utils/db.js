@@ -1590,10 +1590,10 @@ exports.niuniu_permission = function(userId,callback) {
             return;
         }
         if(rows.length == 0){
-            if(callback)callback(2);
+            if(callback)callback(0);
             return;
         }
-        if(rows[0].times <= 0){
+        if(rows[0].times > 0){
             if(callback)callback(1);
             return;
         }

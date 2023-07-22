@@ -33,9 +33,14 @@ export default class GameMgr {
     stateTime: number;
     timerCB: Function | null;
     forceOver: boolean;
+    isTurnGame: boolean = true;
     
     get waiveWhenTimeout() {
         return this.roomConf.getValue("超时弃牌");
+    }
+    
+    get baseScore() {
+        return this.roomConf.baseScore;
     }
 
     constructor(room: RoomMgr, net: GameNet) {
@@ -283,7 +288,6 @@ export default class GameMgr {
         }
         for (let gamber of this.gambers) {
             let score = gamber.score - gamber.scoreBegin;
-            console.log("ggggggggggggggggggg", gamber.userId, score, gamber.score, gamber.scoreBegin);
             if (forceOver) {
                 score = 0;
             }
@@ -304,6 +308,7 @@ export default class GameMgr {
     }
 
     StateOver_settle(...args: any) {
+        this.updateGameState(GameConst.GameState.IDLE);
         this.saveGameLeftData({});
         this.room.gameOver();
     }
@@ -404,7 +409,7 @@ export default class GameMgr {
     
     CA_ShowReplaceCard(gamber: GamberModel) {
         this.doPermissionTask(gamber.userId, () => {
-            this.net.GA_ShowReplaceCard(gamber.userId, this.cardMgr.getLeftCards());
+            this.net.GA_ShowReplaceCard(gamber.userId, gamber.holds, this.cardMgr.getLeftCards());
         });
     }
     
@@ -424,9 +429,9 @@ export default class GameMgr {
 
     CA_Perspect(gamber: GamberModel) {
         this.doPermissionTask(gamber.userId, () => {
-            let allHolds = [];
+            let allHolds: { [ key: string ] : number[] } = {};
             for (let gamber of this.gambers) {
-                allHolds.push({userId:gamber.userId,holds:gamber.holds});
+                allHolds[gamber.userId] = gamber.holds;
             }
             this.net.GA_Perspect(gamber.userId, allHolds);
         });
@@ -510,7 +515,7 @@ export default class GameMgr {
             return ErrorCode.UNKOWN_GAMBER;
         }
         for (let state of this.getAllState()) {
-            console.log("开始重连", userId, state)
+            LogUtil.debug("开始重连", userId, state)
             if (this.gameState == state) {
                 this.reconnectOnState(state, userId, gamber);
                 return;
@@ -567,11 +572,15 @@ export default class GameMgr {
     }
 
     reconnectOnDecideBanker(userId: string) {
-        this.net.G_DecideBanker(this.banker.userId, [], userId);
+        if (this.banker) {
+            this.net.G_DecideBanker(this.banker.userId, [], userId);
+        }
     }
 
     reconnectOverDecideBanker(userId: string) {
-        this.net.G_DecideBanker(this.banker.userId, [], userId);
+        if (this.banker) {
+            this.net.G_DecideBanker(this.banker.userId, [], userId);
+        }
     }
 
     reconnectOverDrawCard(userId: string) {
@@ -579,15 +588,25 @@ export default class GameMgr {
     }
 
     getAllState() {
-        return [GameConst.GameState.IDLE, GameConst.GameState.ROB_BANKER, GameConst.GameState.DECIDE_BANKER, GameConst.GameState.DRAW_CARD, GameConst.GameState.BETTING, GameConst.GameState.SHOW_CARD, GameConst.GameState.SETTLE];
+        return [
+            GameConst.GameState.IDLE, 
+            GameConst.GameState.ROB_BANKER, 
+            GameConst.GameState.DECIDE_BANKER, 
+            GameConst.GameState.DRAW_CARD, 
+            GameConst.GameState.BETTING, 
+            GameConst.GameState.SHOW_CARD, 
+            GameConst.GameState.SETTLE
+        ];
     }
 
     reconnectOnBetting(userId: string, gamber: GamberModel) {
         for (let record of this.recordMgr.operateRecords) {
             this.net.G_DoOperate(record.userId, record.operate, record.value, userId);
         }
-        let op = this.getOptionalOperate(this.turnGamber);
-        this.net.G_TurnBetting(this.turnGamber.userId, op, userId);
+        if (this.isTurnGame) {
+            let op = this.getOptionalOperate(this.turnGamber);
+            this.net.G_TurnBetting(this.turnGamber.userId, op, userId);
+        }
     }
 
     updateGameState(state: GameConst.GameState) {

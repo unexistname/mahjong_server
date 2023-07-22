@@ -2,21 +2,45 @@ import NetUtil from "../base_net/NetUtil";
 import { ErrorCode } from "../game_server/ErrorCode";
 import LogUtil from "../utils/LogUtil";
 import { NetDefine } from "../base_net/NetDefine";
+import RoomNet from "../game_server/Room/RoomNet";
 
 const db = require('../utils/db');
 
 
 export default class RechargeMgr {
 
-    static recharges: { [ key: string ]: any};
+    private static _ins: RechargeMgr;
 
-    static getRecharge(rechargeId: string) {
+    static get ins() {
+        if (this._ins == null) {
+            this._ins = new RechargeMgr();
+        }
+        return this._ins;
+    }
+
+    recharges: { [ key: string ]: any};
+
+    getRecharge(rechargeId: string) {
         if (rechargeId) {
             return this.recharges[rechargeId];
         }
     }
 
-    static isPriceCorrect(rechargeId: string, payMoney: number) {
+    loadAllSeries() {
+        db.get_all_series((datas: any) => {
+            this.recharges = {};
+            for (let data of datas) {
+                this.recharges[data.id] = {
+                    cost: data.presentPrice,
+                    gain_type: data.propId,
+                    gain_value: data.propAmount,
+                    desc: data.seriesName,
+                }
+            }
+        });
+    }
+
+    isPriceCorrect(rechargeId: string, payMoney: number) {
         let recharge = this.getRecharge(rechargeId);
         if (recharge) {
             return Math.abs(recharge.cost - payMoney) < 1e-5;
@@ -24,11 +48,11 @@ export default class RechargeMgr {
         return false;
     }
 
-    static getAllRecharge() {
+    getAllRecharge() {
         return this.recharges;
     }
 
-    static add_recharge(userId: string, rechargeId: string) {
+    add_recharge(userId: string, rechargeId: string) {
         let recharge = this.getRecharge(rechargeId);
         if (recharge) {
             if (recharge.gain_type == 1) {
@@ -40,13 +64,14 @@ export default class RechargeMgr {
             return ErrorCode.UNEXIST_SERIES;
         }
     }
-    static add_gems(userId: string, gems: number) {
+    
+    add_gems(userId: string, gems: number) {
         db.add_gem({userId: userId, gem: gems}, (data: any) => {
             LogUtil.debug("更新钻石数目", userId);
             NetUtil.userBroadcast(NetDefine.WS_Resp.G_MoneyChange, {gems: data.gems}, userId, true);
         });
     }
-    static add_coins(userId: string, coins: number) {
+    add_coins(userId: string, coins: number) {
         db.cost_coins(userId, {area:"renheniuniu"}, -coins, (data: any) => {
             LogUtil.debug("更新金币数目", userId);
             NetUtil.userBroadcast(NetDefine.WS_Resp.G_MoneyChange, {coins: data.coins}, userId, true);

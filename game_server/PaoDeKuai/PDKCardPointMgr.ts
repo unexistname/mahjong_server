@@ -70,7 +70,6 @@ export default class PDKCardPointMgr extends PokerCardPointMgr {
 
     static isPairStraight(cards: number[]) {
         let cnt = this.getSameCardValueCnt(cards);
-        console.log("对顺qqqqqqqqqqqqqq", cnt, cards, this.isStraight(cards));
         return cnt[2] * 2 == cards.length && cnt[2] >= 3 && this.isStraight(cards);
     }
 
@@ -417,7 +416,6 @@ export default class PDKCardPointMgr extends PokerCardPointMgr {
                 amount2[3].sort(this.isBetterCard.bind(this));
                 let card1 = amount1[3][0];
                 let card2 = amount2[3][0];
-                console.log("ssssssssss", folds, holds, amount1,amount2,card1, card2, this.isBetterCard(card1, card2));
                 return this.isBetterCard(card1, card2) < 0;
             case CARD_TYPE.BOMB:
                 if (folds.length != holds.length) {

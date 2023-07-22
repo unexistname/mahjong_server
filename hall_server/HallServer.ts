@@ -21,7 +21,7 @@ export default class HallServer extends BaseServer {
         if(message.cmd == NetDefine.NetType.CONNECT) {
             ws.userId = message.userId;
             ws.netType = NetDefine.NetType.HALL_SOCKET;
-            console.log("[HallServer] " + ws.userId + " online");
+            LogUtil.debug("[HallServer] " + ws.userId + " online");
             NetUtil.bind(ws.userId, ws);
             // let room = AllRoomMgr.ins.getRoomByUserId(ws.userId);
             // if (room) {

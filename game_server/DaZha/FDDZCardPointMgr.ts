@@ -71,7 +71,7 @@ export default class FDDZCardPointMgr extends PokerCardPointMgr {
         if (cards.length != 3) {
             return false;
         }
-        let dict = this.parseCardValueTable(cards);
+        let dict = this.parseCardPointTable(cards);
         return dict[5] && dict[10] && dict[13];
     }
 
@@ -92,7 +92,7 @@ export default class FDDZCardPointMgr extends PokerCardPointMgr {
             // 至少三个相同的牌才能配鬼牌
             return false;
         }
-        dict = this.parseCardValueTable(cards);
+        dict = this.parseCardPointTable(cards);
         for (let i in dict) {
             if (dict[i] == commonCardAmount) {
                 return true;
@@ -103,7 +103,7 @@ export default class FDDZCardPointMgr extends PokerCardPointMgr {
 
     static isSingleStraight(cards: number[]) {
         let cnt = this.getSameCardValueCnt(cards);
-        return cnt[1] == cards.length && cnt[1] >= 5 && this.isStraight(cards);
+        return cnt[1] == cards.length && cnt[1] == 5 && this.isStraight(cards);
     }
 
     static isStraight(cards: number[]) {
@@ -165,7 +165,7 @@ export default class FDDZCardPointMgr extends PokerCardPointMgr {
 
     static getFoldPoint(cards: number[]) {
         let dict = this.parseCardValueTable(cards);
-        return dict[5] * 5 + dict[10] * 10 + dict[13] * 10;
+        return (dict[5] || 0) * 5 + (dict[10] || 0) * 10 + (dict[13] || 0) * 10;
     }
 
     static isBetterCard(card1: number, card2: number) {
@@ -206,7 +206,7 @@ export default class FDDZCardPointMgr extends PokerCardPointMgr {
             }
         } else if (this.isGhostBomb(cards)) {
             cards.sort(this.isBetterCard.bind(this));
-            let point = this.getCardPoint(cards[0]);
+            let point = this.getCardPoint(cards[cards.length - 1]);
             return cards.length * 1000 + point;
         }
         return 0;

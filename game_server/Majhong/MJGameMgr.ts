@@ -33,7 +33,6 @@ export default class MJGameMgr extends GameMgr {
     lastGangGamber: any;
     qiangGangContext: any;
     operateWant: { [ key: string ]: any };
-    chuPaiTask: TimerTask;
     operateTask: {[ key: string ]: TimerTask};
 
     guoshoupeng: { [key: string]: any } = {};
@@ -53,9 +52,27 @@ export default class MJGameMgr extends GameMgr {
         this.net.G_Hun(hun, this.huns);
     }
 
+    decideWind(windIndex: number) {
+        let windGamber = this.gambers[windIndex];
+        for (let i = 0; i < this.gamberNum; ++i) {
+            let index = (windGamber.seatIndex + i) % this.gamberNum;
+            this.gambers[index].direction = i;
+        }
+        this.net.G_DecideWind(this.getDecideWindData());
+    }
+
+    getDecideWindData() {
+        let data : { [ key: string ] : number } = {};
+        for (let i = 0; i < this.gamberNum; ++i) {
+            let gamber = this.gambers[i];
+            data[gamber.userId] = gamber.direction;
+        }
+        return data;
+    }
+
     State_decideBanker() {
         this.wind = GameUtil.random(this.gamberNum - 1);
-        this.net.G_DecideWind(this.gambers[this.wind].userId);
+        this.decideWind(this.wind);
         
         if (this.bankerId == null) {
             let index = GameUtil.random(this.gamberNum - 1);
@@ -70,9 +87,16 @@ export default class MJGameMgr extends GameMgr {
                 }
             }
         }
-        this.generateHun();
         
         this.net.G_DecideBanker(this.bankerId, this.getGamberIds());
+        this.nextState();
+    }
+
+    State_drawCard(...args: any) {
+        this.initHolds();
+        this.generateHun();
+        this.G_InitHolds();
+        this.notifyLeftCard();
         this.nextState();
     }
 
@@ -87,7 +111,6 @@ export default class MJGameMgr extends GameMgr {
 
     initGame(): void {
         super.initGame();
-        this.chuPaiTask = new TimerTask();
         this.operateWant = {};
         this.operateTask = {};
         for (let gamber of this.gambers) {
@@ -189,11 +212,11 @@ export default class MJGameMgr extends GameMgr {
         this.net.G_TurnPlayCard(userId);
         
         if (this.waiveWhenTimeout) {
-            this.chuPaiTask.beginTask(() => {
+            this.beginTimer(GameConst.GameTime.BETTING, () => {
                 if (pai == null || !this.isMahjongCanPlay(pai)) {
                     let holds = this.turnGamber.holds;
                     for (let i = holds.length - 1; i >= 0; --i) {
-                        let pai = holds[i];
+                        pai = holds[i];
                         if (this.isMahjongCanPlay(pai)) {
                             break;
                         }
@@ -202,7 +225,7 @@ export default class MJGameMgr extends GameMgr {
                 if (pai != null) {
                     this.C_ChuPai(this.turnGamber, pai);
                 }
-            }, GameConst.GameTime.BETTING);
+            });
         }
     }
 
@@ -213,7 +236,7 @@ export default class MJGameMgr extends GameMgr {
     @ConditionFilter(ErrorCode.YOU_DONT_HAVE_CARD)
     @ConditionFilter(ErrorCode.THIS_CARD_CANT_PLAY)
     C_ChuPai(gamber: MJGamberModel, pai: number) {
-        this.chuPaiTask.clearTask();
+        this.clearStateTimer();
 
         gamber.canChuPai = false;
         this.foldNum++;
@@ -795,20 +818,6 @@ export default class MJGameMgr extends GameMgr {
             }
             
             let data: any = {pai:pai};
-            // if(gamber.canHu && !this.hasYouJin(gamber)) {
-            //     data.hu = true;
-            // }
-            // if(gamber.canGang) {
-            //     data.gang = true;
-            //     data.gangpai = gamber.gangPai;
-            // }
-            // if(gamber.canPeng) {
-            //     data.peng = true;
-            // }
-            // if(gamber.canChi) {
-            //     data.chi = true;
-            //     data.chipai = gamber.chiPai;
-            // }
             data.chiPai = gamber.chiPai;
             data.gangPai = gamber.gangPai;
             data.optionalOperate = this.getOptionalOperate(gamber);
@@ -817,9 +826,7 @@ export default class MJGameMgr extends GameMgr {
             data.userId = gamber.userId;
             data.time = GameConst.GameTime.MJ_OPERATE;
             this.net.G_MJOperate(data);
-            // logger.game_log(gamber.userId, socket.resp.game_action, "有操作", data);
-            // clientMgr.sendMsg(gamber.userId,socket.resp.game_action,data);
-
+            
             let userId = gamber.userId;
             this.operateWant[userId] = {op: "guo"};
             this.operateTask[userId].beginTask(() => {
@@ -849,7 +856,7 @@ export default class MJGameMgr extends GameMgr {
 
     reconnectOverDecideBanker(userId: string) {
         this.net.G_Hun(this.hun, this.huns, userId);
-        this.net.G_DecideWind(this.gambers[this.wind].userId, userId);
+        this.net.G_DecideWind(this.getDecideWindData(), userId);
         this.net.G_DecideBanker(this.bankerId, [], userId);
     }
 
@@ -871,7 +878,14 @@ export default class MJGameMgr extends GameMgr {
     }
 
     getAllState() {
-        return [GameConst.GameState.IDLE, GameConst.GameState.DECIDE_BANKER, GameConst.GameState.DRAW_CARD, GameConst.GameState.BETTING, GameConst.GameState.SHOW_CARD, GameConst.GameState.SETTLE];
+        return [
+            GameConst.GameState.IDLE, 
+            GameConst.GameState.DECIDE_BANKER, 
+            GameConst.GameState.DRAW_CARD, 
+            GameConst.GameState.BETTING, 
+            GameConst.GameState.SHOW_CARD, 
+            GameConst.GameState.SETTLE
+        ];
     }
 
     generateCardMgr(): CardMgr {

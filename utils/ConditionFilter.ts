@@ -25,7 +25,7 @@ export function ConditionFilter(condition: ErrorCode, ...args: any[]) {
         //             if (errorCocde) {
         //                 return errorCocde;
         //             } else {
-        //                 console.log("调用方法", propertyKey, oldMethod);
+        //                 LogUtil.debug("调用方法", propertyKey, oldMethod);
         //                 return oldMethod.bind(this)(...args2) || ErrorCode.SUCCESS;
         //             }
         //         }).bind(this);

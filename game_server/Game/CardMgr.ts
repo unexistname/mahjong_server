@@ -1,4 +1,5 @@
 import GameUtil from "../../utils/GameUtil";
+import LogUtil from "../../utils/LogUtil";
 import { PokerCardDecor } from "../Poker/PokerCardDecor";
 
 export default class CardMgr {
@@ -20,7 +21,7 @@ export default class CardMgr {
             this.cardHeap[ index ] = this.cardHeap[ lastIndex ];
             this.cardHeap[ lastIndex ] = t;
         }
-        console.log("[当前牌堆]", this.cardHeap);
+        LogUtil.debug("[当前牌堆]", this.cardHeap);
     }
 
     drawCard(isReverse: boolean = false) {

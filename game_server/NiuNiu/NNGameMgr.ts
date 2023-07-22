@@ -9,6 +9,8 @@ import NNOperate from "./NNOperate";
 
 export default class NNGameMgr extends GameMgr {
 
+    isTurnGame: boolean = false;
+
     StateOver_idle(...args: any) {
         this.updateGameState(GameConst.GameState.DRAW_CARD);
         this.State_drawCard();
@@ -81,8 +83,6 @@ export default class NNGameMgr extends GameMgr {
     }
 
     settle() {
-        var difen = this.roomConf.baseScore;
-
         for (let gamber of this.gambers) {
             if (!gamber.scoreRobBanker) {
                 gamber.scoreRobBanker = 1;
@@ -96,39 +96,41 @@ export default class NNGameMgr extends GameMgr {
         var value = NNCardPointMgr.calculate(banker.holds);
         banker.cardType = value;
         var beishu = NNCardPointMgr.typeResult(value);
+        let bankerScore = 0;
         for (let gamber of this.gambers) {
             if (gamber == banker) {
                 continue;
             }
             var value2 = NNCardPointMgr.calculate(gamber.holds);
             gamber.cardType = value2;
-            let scoreBeforeMulti = (banker.scoreRobBanker || 1) * gamber.scoreBetting * difen;
+            let scoreBeforeMulti = (banker.scoreRobBanker || 1) * gamber.scoreBetting * this.baseScore;
             if(value > value2){
                 let score = scoreBeforeMulti * beishu;
-                banker.score += score;
-                gamber.score -= score;
+                bankerScore += score;
+                this.changeGamberScore(gamber, -score);
             }
             else if(value == value2){
                 var result = NNCardPointMgr.compare(banker.holds, gamber.holds, value);
                 if(result > 0){
                     var score = scoreBeforeMulti * beishu;
-                    banker.score += score;
-                    gamber.score -= score;
+                    bankerScore += score;
+                    this.changeGamberScore(gamber, -score);
                 }
                 else if(result < 0){
                     var beishu2 = NNCardPointMgr.typeResult(value2);
                     var score = scoreBeforeMulti * beishu2;
-                    banker.score -= score;
-                    gamber.score += score;
+                    bankerScore -= score;
+                    this.changeGamberScore(gamber, score);
                 }
             }
             else if(value < value2){
                 var beishu2 = NNCardPointMgr.typeResult(value2);
                 var score = scoreBeforeMulti * beishu2;
-                banker.score -= score;
-                gamber.score += score;
+                bankerScore -= score;
+                this.changeGamberScore(gamber, score);
             }
         }
+        this.changeGamberScore(banker, bankerScore);
     }
 
     getRobBankerValues(): number[] {

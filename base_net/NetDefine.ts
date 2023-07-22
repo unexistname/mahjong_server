@@ -35,6 +35,7 @@ export namespace NetDefine {
         C_Chat,
         C_QuickChat,
         C_Emoji,
+        C_DissolveVote,
 
         // 管理员特殊操作
         CA_ShowReplaceCard,
@@ -100,6 +101,9 @@ export namespace NetDefine {
         G_Chat,
         G_QuickChat,
         G_Emoji,
+        G_ShowDissolveVote,
+        G_DissolveVote,
+        G_DissolveResult,
         
         G_ShowRecord,
         G_RobBanker,
@@ -171,6 +175,7 @@ export namespace NetDefine {
         C_GetPhoneToken = "/phone_verify",
         C_PhoneLogin = "/phone_auth",
         C_Recharge = "/recharge_id",
+        C_ShowRecharge = "/getAllSeries",
         C_Pay = "/pay",
     }
 

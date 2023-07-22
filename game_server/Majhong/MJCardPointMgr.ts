@@ -93,11 +93,14 @@ export default class MJCardPointMgr {
     }
     
     static isPinghu(game: MJGameMgr, gamber: MJGamberModel) {
-        for (let penggang of gamber.penggangs) {
-            if (penggang[0] == "chi") {
-                return false;
-            }
+        if (gamber.penggangs.length > 0) {
+            return false;
         }
+        // for (let penggang of gamber.penggangs) {
+        //     if (penggang[0] == "chi") {
+        //         return false;
+        //     }
+        // }
         if (gamber.flowers.length > 0) {
             return false;
         }

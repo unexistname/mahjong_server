@@ -79,17 +79,17 @@ export default class DZGameMgr extends GameMgr {
     StateOver_decideBanker() {
         this.updateGameState(GameConst.GameState.BETTING);
 
-        this.blintBetting(this.smallBlindBetGamber, this.roomConf.baseScore / 2);
-        this.blintBetting(this.bigBlindBetGamber, this.roomConf.baseScore);
+        this.blintBetting(this.smallBlindBetGamber, this.baseScore / 2);
+        this.blintBetting(this.bigBlindBetGamber, this.baseScore);
         this.turnGamber = this.getNextGamber(this.bigBlindBetGamber);
         this.State_betting(this.turnGamber);
     }
 
     getRaiseBetCost() {
         if (this.smallRound > 2) {
-            return this.callNowCost + this.roomConf.baseScore * 2;
+            return this.callNowCost + this.baseScore * 2;
         } else {
-            return this.callNowCost + this.roomConf.baseScore;
+            return this.callNowCost + this.baseScore;
         }
     }
 
@@ -281,5 +281,16 @@ export default class DZGameMgr extends GameMgr {
             return this.gambers[index];
         }
         return gamber;
+    }
+
+    getAllState() {
+        return [
+            GameConst.GameState.IDLE, 
+            GameConst.GameState.DECIDE_BANKER, 
+            GameConst.GameState.DRAW_CARD, 
+            GameConst.GameState.BETTING, 
+            GameConst.GameState.SHOW_CARD, 
+            GameConst.GameState.SETTLE
+        ];
     }
 }

@@ -20,7 +20,7 @@ export default class FDGameMgr extends MJGameMgr {
 
 
     State_drawCard() {
-        this.baseHu = this.bankerTimes * this.roomConf.baseScore;
+        this.baseHu = this.bankerTimes * this.baseScore;
         this.net.G_BaseHu(this.baseHu);
         super.State_drawCard();
     }
@@ -137,14 +137,14 @@ export default class FDGameMgr extends MJGameMgr {
             // 花是赖子，就不补花
             return false;
         }
-        console.log("[补花前]", gamber.holds);
+        LogUtil.debug("[补花前]", gamber.holds);
         gamber.discard(pai);
         gamber.flowers.push(pai);
         this.notifyOperate(gamber, FDOperate.BU_HUA, pai);
         this.cardMgr.sortCard(gamber.holds, this.huns);
     
         this.doUserMoPai(gamber, true, this.turnGamber == gamber);
-        console.log("[补花后]", gamber.holds);
+        LogUtil.debug("[补花后]", gamber.holds);
         return true;
     }
 
@@ -189,8 +189,8 @@ export default class FDGameMgr extends MJGameMgr {
                     score *= 2;
                 }
                 LogUtil.debug("计算分数", score, gamber.totalHu, gamber.userId);
-                gamber.score += score;
-                otherGamber.score -= score;
+                this.changeGamberScore(gamber, score);
+                this.changeGamberScore(otherGamber, -score);
             }
         }
         for (let gamber of this.gambers) {

@@ -9,6 +9,7 @@ import BaseServer from "../base_net/BaseServer";
 import RoomMetaConfMgr from "./Room/RoomMetaConfMgr";
 import PropMgr from "../common/PropMgr";
 import RoomNet from "./Room/RoomNet";
+import RechargeMgr from "../common/RechargeMgr";
 
 
 export default class GameServer extends BaseServer {
@@ -17,6 +18,7 @@ export default class GameServer extends BaseServer {
         super.initServer();
         RoomMetaConfMgr.ins.loadAllMetaConf();
         PropMgr.ins.loadAllProp();
+        RechargeMgr.ins.loadAllSeries();
     }
 
     getPort() {
@@ -29,7 +31,7 @@ export default class GameServer extends BaseServer {
             ws.userId = message.userId;
             ws.netType = NetDefine.NetType.GAME_SOCKET;
 
-            console.log("[GameServer] " + ws.userId + " online");
+            LogUtil.debug("[GameServer] " + ws.userId + " online");
 
             let room = AllRoomMgr.ins.getRoomByUserId(ws.userId);
             if (room == null) {

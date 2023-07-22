@@ -12,6 +12,7 @@ export default class SSSGameMgr extends GameMgr {
 
     net: SSSNet;
     gambers: SSSGamberModel[];
+    isTurnGame: boolean = false;
 
     StateOver_idle() {
         this.updateGameState(GameConst.GameState.DRAW_CARD);
@@ -102,7 +103,7 @@ export default class SSSGameMgr extends GameMgr {
     }
 
     settle() {
-        let baseScore = this.roomConf.baseScore;
+        let baseScore = this.baseScore;
         var kill: number[][] = [];
         // 先普通比牌
 
@@ -235,6 +236,16 @@ export default class SSSGameMgr extends GameMgr {
         return {
             combineCards: gamber.combineCards,
         }
+    }
+
+    getAllState(): GameConst.GameState[] {
+        return [
+                GameConst.GameState.IDLE,
+                GameConst.GameState.DRAW_CARD,
+                GameConst.GameState.BETTING,
+                GameConst.GameState.SHOW_CARD,
+                GameConst.GameState.SETTLE,
+            ]
     }
 
     generateGamber() {

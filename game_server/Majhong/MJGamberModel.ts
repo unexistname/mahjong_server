@@ -15,6 +15,9 @@ export default class MJGamberModel extends GamberModel {
     tingMap: number[] = [];
     pattern = GameConst.HuType.NONE;
 
+    // 风向
+    direction: number = 0;
+
     //是否可以杠
     canGang = false;
     //用于记录玩家可以杠的牌

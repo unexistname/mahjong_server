@@ -33,7 +33,6 @@ export default class MJNet extends GameNet {
     }
 
     G_SyncHolds(userId: string, holds: number[], isDrawCard: boolean = false) {
-        console.log("[G_SyncHolds] begin", holds);
         let data: any = {userId: userId, holds: holds};
         if (isDrawCard) {
             let clientHolds = GameUtil.deepClone(holds);
@@ -41,7 +40,6 @@ export default class MJNet extends GameNet {
             data.holds = clientHolds;
             data.draw = draw;
         }
-        console.log("[G_SyncHolds] end", data.holds, data.draw);
         NetUtil.sendMsg(userId, NetDefine.WS_Resp.G_SyncHolds, data);
         let hideHolds = [];
         for (let hold of data.holds) {

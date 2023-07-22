@@ -37,6 +37,21 @@ export default class QSGameMgr extends MJGameMgr {
         gamber.canHu = gamber.pattern != GameConst.HuType.NONE;
     }
     
+    settle(): void {
+        for (let gamber of this.gambers) {
+            if (gamber.hued) {
+                this.changeGamberScore(gamber, this.baseScore * (this.gamberNum - 1));
+            } else {
+                this.changeGamberScore(gamber, -this.baseScore);
+            }
+        }
+        for (let gamber of this.gambers) {
+            if (gamber.hued) {
+                this.winnerId = gamber.userId;
+                break;
+            }
+        }
+    }
 
     generateCardMgr(): CardMgr {
         return new QSCardMgr();

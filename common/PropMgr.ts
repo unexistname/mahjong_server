@@ -27,7 +27,6 @@ export default class PropMgr {
                 }
                 this.props[data.id] = data;
             }
-            console.log("所有道具", this.props);
         });
     }
 
