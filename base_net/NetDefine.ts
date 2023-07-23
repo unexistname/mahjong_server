@@ -3,7 +3,6 @@
 export namespace NetDefine {
     
     export enum NetType {
-        CONNECT = 0,
         HALL_SOCKET = 1,
         GAME_SOCKET = 2,
         HEART_BEAT = 3,

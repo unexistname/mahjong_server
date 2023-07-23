@@ -25,26 +25,30 @@ export default class HallHttp extends BaseHttp {
         this.send(res, RechargeMgr.ins.getAllRecharge());
     }
 
+    static C_Recharge(res: any, msg: any) {
+        this.C_Pay(res, msg);
+    }
+
     static C_Pay(res: any, msg: any) {
         LogUtil.debug(`[HallHttp C_Pay] data= ${msg}`);
 
-        let rechargeId = msg.recharge_id;
+        let rechargeId = msg.rechargeId;
         let recharge = RechargeMgr.ins.getRecharge(rechargeId);
         if (recharge == null) {
             this.sendError(res, ErrorCode.UNEXIST_SERIES);
             return;
         }
-        let money = recharge.cost * 100;
+        let money = recharge.price * 100;
         let orderCreateTime = Date.now();
         let description = recharge.desc || "";
 
         let orderData = {
-            userId: msg.user_id, 
+            userId: msg.userId, 
             rechargeId: rechargeId,
             createTime: orderCreateTime
         };
         db.insert_order(orderData, (orderId: string) => {
-            let payData = wx_tool.getWXRequestOrderData(msg.user_id, orderId, rechargeId, description, money);
+            let payData = wx_tool.getWXRequestOrderData(msg.userId, orderId, rechargeId, description, money);
             wx_tool.getPrepayId(payData, (prepay_id: string) => {
                 if (prepay_id) {
                     this.send(res, wx_tool.getWXOrderData(prepay_id, orderCreateTime));

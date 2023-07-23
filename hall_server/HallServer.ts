@@ -17,22 +17,16 @@ export default class HallServer extends BaseServer {
         HallHttp.onMessage(req, res, path, query);;
     }
 
+    onWSConnect(ws: any, req: IncomingMessage, message: any) {
+        ws.userId = message.userId;
+        ws.netType = NetDefine.NetType.HALL_SOCKET;
+        LogUtil.debug("[HallServer] " + ws.userId + " online");
+        NetUtil.bind(ws.userId, ws);
+        HallSocket.onMessage(ws, NetDefine.WS_Req.C_ShowCreateRoom, {});
+    }
+
     onWSMessage(ws: any, req: IncomingMessage, message: any) {
-        if(message.cmd == NetDefine.NetType.CONNECT) {
-            ws.userId = message.userId;
-            ws.netType = NetDefine.NetType.HALL_SOCKET;
-            LogUtil.debug("[HallServer] " + ws.userId + " online");
-            NetUtil.bind(ws.userId, ws);
-            // let room = AllRoomMgr.ins.getRoomByUserId(ws.userId);
-            // if (room) {
-            //     LogUtil.debug(`${ws.userId} 进入了房间 ${room.roomId}`);
-            //     let msg = { roomId: room.roomId }
-            //     HallSocket.C_EnterRoom(ws, msg);
-            // }
-            HallSocket.onMessage(ws, NetDefine.WS_Req.C_ShowCreateRoom, {});
-        } else {
-            HallSocket.onMessage(ws, message.cmd, message.msg);
-        }
+        HallSocket.onMessage(ws, message.cmd, message.msg);
     }
 
     onWSClose(ws: any, code: number, reason: any) {

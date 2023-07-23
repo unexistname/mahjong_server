@@ -58,12 +58,7 @@ export default class AllRoomMgr {
     C_Dissolve(userId: string) {
         let roomId = this.userRooms[userId];
         let room = this.rooms[roomId];
-        let code = room.dissolve(userId);
-        if (GameUtil.isSuccessCode(code)) {
-            this.delRoom(roomId);
-        } else {
-            return code;
-        }
+        return room.C_Dissolve(userId);
     }
 
     getRoomByUserId(userId: string) {

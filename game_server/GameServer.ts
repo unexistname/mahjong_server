@@ -25,28 +25,28 @@ export default class GameServer extends BaseServer {
         return 9001;
     }
 
-    onWSMessage(ws: any, req: IncomingMessage, message: any) {
+    onWSConnect(ws: any, req: IncomingMessage, message: any) {
         let ip = req.connection.remoteAddress;
-        if(message.cmd == NetDefine.NetType.CONNECT) {
-            ws.userId = message.userId;
-            ws.netType = NetDefine.NetType.GAME_SOCKET;
+        ws.userId = message.userId;
+        ws.netType = NetDefine.NetType.GAME_SOCKET;
 
-            LogUtil.debug("[GameServer] " + ws.userId + " online");
+        LogUtil.debug("[GameServer] " + ws.userId + " online");
 
-            let room = AllRoomMgr.ins.getRoomByUserId(ws.userId);
-            if (room == null) {
-                RoomNet.G_LeaveRoom(ws.userId);
-                LogUtil.debug(`[GameServer] ${ws.userId} not in room`);
-                // ws.close();
-                return;
-            }
-
-            ws.ip = ip;
-            NetUtil.bind(ws.userId, ws);;
-            AllUserMgr.ins.online(ws.userId);
-        } else {
-            GameSocket.onMessage(ws, message.cmd, message.msg);
+        let room = AllRoomMgr.ins.getRoomByUserId(ws.userId);
+        if (room == null) {
+            RoomNet.G_LeaveRoom(ws.userId);
+            LogUtil.debug(`[GameServer] ${ws.userId} not in room`);
+            // ws.close();
+            return;
         }
+
+        ws.ip = ip;
+        NetUtil.bind(ws.userId, ws);;
+        AllUserMgr.ins.online(ws.userId);
+    }
+
+    onWSMessage(ws: any, req: IncomingMessage, message: any) {
+        GameSocket.onMessage(ws, message.cmd, message.msg);
     }
 
     onWSClose(ws: any, code: number, reason: any) {

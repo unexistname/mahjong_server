@@ -54,8 +54,10 @@ export default class BaseServer {
                 message = socket.parse(message);
                 if (message == null) {
                     LogUtil.warn(`[${this.constructor.name} receive empty message] ${ws.userId}`);
-                } else if (BaseSocket.isHeartBeat(message.cmd)) {
+                } else if (BaseSocket.isHeartBeatCmd(message.cmd)) {
                     BaseSocket.heartBeat(ws);
+                } else if (BaseSocket.isConnectCmd(message.cmd)) {
+                    this.onWSConnect(ws, req, message);
                 } else {
                     this.onWSMessage(ws, req, message);
                 }
@@ -80,6 +82,10 @@ export default class BaseServer {
     }
 
     onHttpMessage(req: any, res: any, path: any, query: any) {
+
+    }
+
+    onWSConnect(ws: any, req: IncomingMessage, message: any) {
 
     }
 

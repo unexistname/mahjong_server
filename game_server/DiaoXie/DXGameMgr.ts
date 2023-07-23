@@ -169,12 +169,12 @@ export default class DXGameMgr extends GameMgr {
             // 1. 除了头家，其他全弃，再轮到头家就结束
             // 2. 头家弃牌，轮到最后一家就结束
             // 3. 头家第二次操作完毕，结束
-            if (nextGamber == this.banker) {
-                if (this.otherAllEliminate(this.banker)) {
+            if (this.getNextGamber(nextGamber) == this.banker) {
+                if (this.otherAllEliminate(nextGamber)) {
                     return true;
                 }
             }
-            if (this.getNextGamber(nextGamber) == this.banker) {
+            if (nextGamber == this.banker) {
                 if (this.banker.eliminate) {
                     return true;
                 }

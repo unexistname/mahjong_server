@@ -31,10 +31,12 @@ export default class RechargeMgr {
             this.recharges = {};
             for (let data of datas) {
                 this.recharges[data.id] = {
-                    cost: data.presentPrice,
-                    gain_type: data.propId,
-                    gain_value: data.propAmount,
-                    desc: data.seriesName,
+                    rechageId: data.id,
+                    price: data.presentPrice,
+                    propId: data.propId,
+                    propAmount: data.propAmount,
+                    seriesDesc: data.seriesName,
+                    seriesName: data.seriesName,
                 }
             }
         });
@@ -43,7 +45,7 @@ export default class RechargeMgr {
     isPriceCorrect(rechargeId: string, payMoney: number) {
         let recharge = this.getRecharge(rechargeId);
         if (recharge) {
-            return Math.abs(recharge.cost - payMoney) < 1e-5;
+            return Math.abs(recharge.price - payMoney) < 1e-5;
         }
         return false;
     }
@@ -55,10 +57,10 @@ export default class RechargeMgr {
     add_recharge(userId: string, rechargeId: string) {
         let recharge = this.getRecharge(rechargeId);
         if (recharge) {
-            if (recharge.gain_type == 1) {
-                this.add_gems(userId, recharge.gain_value);
-            } else if (recharge.gain_type == 3) {
-                this.add_coins(userId, recharge.gain_value);
+            if (recharge.propId == 1) {
+                this.add_gems(userId, recharge.propAmount);
+            } else if (recharge.propId == 3) {
+                this.add_coins(userId, recharge.propAmount);
             }
         } else {
             return ErrorCode.UNEXIST_SERIES;

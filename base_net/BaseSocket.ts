@@ -37,8 +37,12 @@ export default class BaseSocket {
         socket.send(ws, this.getNetType(), data);
     }
 
-    static isHeartBeat(cmd: any) {
+    static isHeartBeatCmd(cmd: any) {
         return cmd == "ping";
+    }
+
+    static isConnectCmd(cmd: any) {
+        return cmd == "connect";
     }
 
     static heartBeat(ws: any) {

@@ -220,8 +220,7 @@ export default class RoomMgr {
         let isDissolve = agree * 2 >= total;
         this.net.G_DissolveResult(isDissolve);
         if (isDissolve) {
-            this.net.G_Dissolve();
-            AllRoomMgr.ins.delRoom(this.roomId);
+            this.dissolve();
         }
     }
 
@@ -234,13 +233,22 @@ export default class RoomMgr {
     }
 
     @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)
+    C_Dissolve(userId: string) {
+        if (this.isBegin()) {
+            this.beginDissolveVote(userId);
+        } else {
+            if (this.owner.userId == userId) {
+                this.dissolve();
+            } else {
+                return ErrorCode.YOU_ARE_NOT_OWNER;
+            }
+        }
+    }
+
+    @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)
     C_LeaveRoom(userId: string) {
         if (this.isBegin()) {
             this.beginDissolveVote(userId);
-            return;
-        }
-        if (this.owner.userId == userId) {
-            this.net.G_ShowDissolve(userId);
         } else {
             this.leaveRoom(userId);
         }
@@ -537,10 +545,9 @@ export default class RoomMgr {
         // }
     }
 
-    @ConditionFilter(ErrorCode.YOU_ARE_NOT_OWNER)
-    @ConditionFilter(ErrorCode.ROOM_IS_BEGIN)
-    dissolve(userId: string) {
+    dissolve() {
         this.net.G_Dissolve();
+        AllRoomMgr.ins.delRoom(this.roomId);
     }
 
     C_Chat(userId: string, data: any) {
