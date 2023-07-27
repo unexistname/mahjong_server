@@ -9,6 +9,7 @@ export default class GamberModel {
     scoreBetting: number;
     scoreBettings: number[];
     eliminate: boolean;
+    waive: boolean;
     hasBetting: boolean;
     cardValue: number;
     operates: any[];
@@ -22,6 +23,7 @@ export default class GamberModel {
         this.scoreRobBanker = null;
         this.scoreBetting = 0;
         this.scoreBettings = [];
+        this.waive = false;
         this.eliminate = false;
         this.hasBetting = false;
         this.operates = [];

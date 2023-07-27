@@ -4,11 +4,11 @@ import { GameConst } from "../game_server/GameConst";
 import GameMgr from "../game_server/Game/GameMgr";
 import GamberModel from "../game_server/Game/GamberModel";
 import AllRoomMgr from "../game_server/Room/AllRoomMgr";
-import MJGameMgr from "../game_server/Majhong/MJGameMgr";
-import MJGamberModel from "../game_server/Majhong/MJGamberModel";
+import MJGameMgr from "../game_server/Majhong/Base/MJGameMgr";
+import MJGamberModel from "../game_server/Majhong/Base/MJGamberModel";
 import GameUtil from "./GameUtil";
-import SSSGameMgr from "../game_server/ShiSanShui/SSSGameMgr";
-import SSSCardPointMgr from "../game_server/ShiSanShui/SSSCardPointMgr";
+import SSSGameMgr from "../game_server/Poker/CompareCard/Other/ShiSanShui/SSSGameMgr";
+import SSSCardPointMgr from "../game_server/Poker/CompareCard/Other/ShiSanShui/SSSCardPointMgr";
 
 let conditions: any = {};
 
@@ -133,5 +133,18 @@ conditions[ErrorCode.CANT_POUR_WATER] = (game: SSSGameMgr, gamber: MJGamberModel
         return ErrorCode.CANT_POUR_WATER;
     }
 }
+
+conditions[ErrorCode.WAIVE_OR_ELIMINATE] = (game: GameMgr, gamber: GamberModel) => {
+    if (gamber.eliminate || gamber.waive) {
+        return ErrorCode.WAIVE_OR_ELIMINATE;
+    }
+}
+
+conditions[ErrorCode.YOU_ALREADY_OPERATE] = (game: GameMgr, gamber: GamberModel) => {
+    if (gamber.hasBetting) {
+        return ErrorCode.YOU_ALREADY_OPERATE;
+    }
+}
+
 
 export let Conditions = conditions;

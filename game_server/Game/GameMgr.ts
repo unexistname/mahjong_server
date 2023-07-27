@@ -552,7 +552,7 @@ export default class GameMgr {
     reconnectOverState(state: GameConst.GameState, userId: string, gamber: GamberModel) {
         switch(state) {
             case GameConst.GameState.IDLE:
-                this.net.G_BeginGame(this.round, userId);
+                this.reconnectOverIdle(userId);
                 break;
             case GameConst.GameState.ROB_BANKER:
                 break;
@@ -569,6 +569,10 @@ export default class GameMgr {
             case GameConst.GameState.SETTLE:
                 break;
         }
+    }
+
+    reconnectOverIdle(userId: string) {
+        this.net.G_BeginGame(this.round, userId);
     }
 
     reconnectOnDecideBanker(userId: string) {
@@ -627,5 +631,6 @@ export default class GameMgr {
             this.net.G_GamberScoreChange(gamber.userId, 0, 0, 0);
         }
         this.net.G_FundPoolChange(0);
+        this.clearStateTimer();
     }
 }

@@ -2,24 +2,24 @@ import BaseSocket from "../base_net/BaseSocket";
 import { NetDefine } from "../base_net/NetDefine";
 import AllUserMgr from "../common/AllUserMgr";
 import PropMgr from "../common/PropMgr";
-import FDDZGameMgr from "./DaZha/FDDZGameMgr";
-import DZGamberModel from "./DeZhou/DZGamberModel";
-import DZGameMgr from "./DeZhou/DZGameMgr";
-import DXGameMgr from "./DiaoXie/DXGameMgr";
+import FDDZGameMgr from "./Poker/PlayCard/DaZha/FDDZGameMgr";
+import DZGamberModel from "./Poker/CompareCard/Turn/DeZhou/DZGamberModel";
+import DZGameMgr from "./Poker/CompareCard/Turn/DeZhou/DZGameMgr";
+import DXGameMgr from "./Poker/CompareCard/Turn/DiaoXie/DXGameMgr";
 import { ErrorCode } from "./ErrorCode";
 import GamberModel from "./Game/GamberModel";
 import GameMgr from "./Game/GameMgr";
 import GameEncry from "./GameEncry";
-import MJGamberModel from "./Majhong/MJGamberModel";
-import MJGameMgr from "./Majhong/MJGameMgr";
-import NNGameMgr from "./NiuNiu/NNGameMgr";
-import PDKGameMgr from "./PaoDeKuai/PDKGameMgr";
+import MJGamberModel from "./Majhong/Base/MJGamberModel";
+import MJGameMgr from "./Majhong/Base/MJGameMgr";
+import NNGameMgr from "./Poker/CompareCard/Bet/NiuNiu/NNGameMgr";
+import PDKGameMgr from "./Poker/PlayCard/PaoDeKuai/PDKGameMgr";
 import AllRoomMgr from "./Room/AllRoomMgr";
 import RoomNet from "./Room/RoomNet";
-import SSSGamberModel from "./ShiSanShui/SSSGamberModel";
-import SSSGameMgr from "./ShiSanShui/SSSGameMgr";
-import ZJHGamberModel from "./ZhaJinHua/ZJHGamberModel";
-import ZJHGameMgr from "./ZhaJinHua/ZJHGameMgr";
+import SSSGamberModel from "./Poker/CompareCard/Other/ShiSanShui/SSSGamberModel";
+import SSSGameMgr from "./Poker/CompareCard/Other/ShiSanShui/SSSGameMgr";
+import ZJHGamberModel from "./Poker/CompareCard/Turn/ZhaJinHua/ZJHGamberModel";
+import ZJHGameMgr from "./Poker/CompareCard/Turn/ZhaJinHua/ZJHGameMgr";
 
 
 export default class GameSocket extends BaseSocket {

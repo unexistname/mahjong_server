@@ -90,7 +90,7 @@ export default class GameNet {
     G_DecideBanker(bankerId: string, userIdArr: string[], syncUserId?: string) {
         let data = {
             bankerId: bankerId,
-            userIdArr: userIdArr,
+            userIdArr: [],
             decideBankerTime: GameConst.GameTime.DECIDE_BANKER,
         }
         this.send(NetDefine.WS_Resp.G_DecideBanker, data, syncUserId);

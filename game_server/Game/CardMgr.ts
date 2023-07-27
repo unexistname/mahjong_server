@@ -1,6 +1,6 @@
 import GameUtil from "../../utils/GameUtil";
 import LogUtil from "../../utils/LogUtil";
-import { PokerCardDecor } from "../Poker/PokerCardDecor";
+import { PokerCardDecor } from "../Poker/Base/PokerCardDecor";
 
 export default class CardMgr {
 

@@ -3,28 +3,28 @@ import UserModel from "../../common/UserModel";
 import { ConditionFilter } from "../../utils/ConditionFilter";
 import GameUtil from "../../utils/GameUtil";
 import TimerTask from "../../utils/TimerTask";
-import FDDZGameMgr from "../DaZha/FDDZGameMgr";
-import FDDZNet from "../DaZha/FDDZNet";
-import DZGameMgr from "../DeZhou/DZGameMgr";
-import DZNet from "../DeZhou/DZNet";
-import DXGameMgr from "../DiaoXie/DXGameMgr";
-import DXNet from "../DiaoXie/DXNet";
+import FDDZGameMgr from "../Poker/PlayCard/DaZha/FDDZGameMgr";
+import FDDZNet from "../Poker/PlayCard/DaZha/FDDZNet";
+import DZGameMgr from "../Poker/CompareCard/Turn/DeZhou/DZGameMgr";
+import DZNet from "../Poker/CompareCard/Turn/DeZhou/DZNet";
+import DXGameMgr from "../Poker/CompareCard/Turn/DiaoXie/DXGameMgr";
+import DXNet from "../Poker/CompareCard/Turn/DiaoXie/DXNet";
 import { ErrorCode } from "../ErrorCode";
-import FDGameMgr from "../FuDing/FDGameMgr";
-import FDNet from "../FuDing/FDNet";
+import FDGameMgr from "../Majhong/FuDing/FDGameMgr";
+import FDNet from "../Majhong/FuDing/FDNet";
 import GamberModel from "../Game/GamberModel";
 import GameMgr from "../Game/GameMgr";
 import GameNet from "../Game/GameNet";
 import { GameConst } from "../GameConst";
-import MJNet from "../Majhong/MJNet";
-import NNGameMgr from "../NiuNiu/NNGameMgr";
-import PDKGameMgr from "../PaoDeKuai/PDKGameMgr";
-import QSGameMgr from "../QueShen/QSGameMgr";
-import SGGameMgr from "../SanGong/SGGameMgr";
-import SSSGameMgr from "../ShiSanShui/SSSGameMgr";
-import SSSNet from "../ShiSanShui/SSSNet";
-import ZJHGameMgr from "../ZhaJinHua/ZJHGameMgr";
-import ZJHNet from "../ZhaJinHua/ZJHNet";
+import MJNet from "../Majhong/Base/MJNet";
+import NNGameMgr from "../Poker/CompareCard/Bet/NiuNiu/NNGameMgr";
+import PDKGameMgr from "../Poker/PlayCard/PaoDeKuai/PDKGameMgr";
+import QSGameMgr from "../Majhong/QueShen/QSGameMgr";
+import SGGameMgr from "../Poker/CompareCard/Bet/SanGong/SGGameMgr";
+import SSSGameMgr from "../Poker/CompareCard/Other/ShiSanShui/SSSGameMgr";
+import SSSNet from "../Poker/CompareCard/Other/ShiSanShui/SSSNet";
+import ZJHGameMgr from "../Poker/CompareCard/Turn/ZhaJinHua/ZJHGameMgr";
+import ZJHNet from "../Poker/CompareCard/Turn/ZhaJinHua/ZJHNet";
 import AllRoomMgr from "./AllRoomMgr";
 import RoomConfModel from "./RoomConfModel";
 import RoomUserModel from "./RoomUserModel";
@@ -546,8 +546,23 @@ export default class RoomMgr {
     }
 
     dissolve() {
+        this.roomOver();
         this.net.G_Dissolve();
         AllRoomMgr.ins.delRoom(this.roomId);
+    }
+
+    destory() {
+        this.game && this.game.destroy();
+        delete this.game;
+        if (this.offlineTimer != null) {
+            clearInterval(this.offlineTimer);
+            this.offlineTimer = null;
+        }
+        if (this.dissolveVoteTimer) {
+            this.dissolveVoteTimer.clearTask();
+        }
+        this.gameLeftData = null;
+        this.record = null;
     }
 
     C_Chat(userId: string, data: any) {

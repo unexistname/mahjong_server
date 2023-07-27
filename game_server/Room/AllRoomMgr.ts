@@ -40,6 +40,7 @@ export default class AllRoomMgr {
             NetUtil.clear(userId);
             delete this.userRooms[userId];
         }
+        room.destory();
         delete this.rooms[roomId];
         HallSocket.broadcast(NetDefine.WS_Resp.G_RoomDel, roomId);
     }
