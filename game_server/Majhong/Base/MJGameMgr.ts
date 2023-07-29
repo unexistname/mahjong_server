@@ -859,20 +859,22 @@ export default class MJGameMgr extends GameMgr {
         this.net.G_DecideBanker(this.bankerId, [], userId);
     }
 
-    reconnectOnBetting(userId: string, gamber: GamberModel): void {
+    reconnectOnBetting(userId: string, gamber?: GamberModel): void {
         for (let record of this.recordMgr.operateRecords) {
             this.net.G_DoOperate(record.userId, record.operate, record.value, userId);
         }
         for (let tmpGamber of this.gambers) {
             for (let pai of tmpGamber.folds) {
-                this.net.G_Fold(tmpGamber.userId, pai, null, gamber.userId);
+                this.net.G_Fold(tmpGamber.userId, pai, null, userId);
             }
-            this.net.G_SyncCombines(tmpGamber.userId, tmpGamber.penggangs, gamber.userId);
+            this.net.G_SyncCombines(tmpGamber.userId, tmpGamber.penggangs, userId);
         }
         this.net.G_TurnPlayCard(this.turnGamber.userId, userId);
-        this.net.G_SyncHolds(gamber.userId, gamber.holds, this.turnGamber == gamber);
-        if (this.hasOperations(<MJGamberModel>gamber)) {
-            this.sendOperations(<MJGamberModel>gamber, this.chuPai);
+        if (gamber) {
+            this.net.G_SyncHolds(gamber.userId, gamber.holds, this.turnGamber == gamber);
+            if (this.hasOperations(<MJGamberModel>gamber)) {
+                this.sendOperations(<MJGamberModel>gamber, this.chuPai);
+            }
         }
     }
 

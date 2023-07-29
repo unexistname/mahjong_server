@@ -14,7 +14,7 @@ export default class PDKCardPointMgr extends PlayPokerCardPointMgr {
 
     static isPairStraight(cards: number[]) {
         let cnt = this.getSameCardValueCnt(cards);
-        return cnt[2] * 2 == cards.length && cnt[2] >= 3 && this.isStraight(cards);
+        return cnt[2] * 2 == cards.length && cnt[2] >= 2 && this.isStraight(cards);
     }
 
     static getBombValue(cards: number[]) {

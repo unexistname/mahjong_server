@@ -1,11 +1,16 @@
-import CardMgr from "../../../Game/CardMgr";
 import { PokerCardDecor } from "../../Base/PokerCardDecor";
 import PlayPokerCardMgr from "../Base/PlayPokerCardMgr";
-import PDKCardPointMgr from "./PDKCardPointMgr";
 
 
 export default class PDKCardMgr  extends PlayPokerCardMgr {
-    
+
+    constructor(playerNum: number) {
+        super();
+        if (playerNum == 4) {
+            this.cardHeap = super.generateCards();
+        }
+    }
+
     generateCards() {
         let cards = [];
         for (let i = 3; i <= 13; ++i) {

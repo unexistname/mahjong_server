@@ -24,8 +24,15 @@ export default class GameEncry extends BaseEncry {
         }
     }
 
+    static G_ShowWatchers(msg: any) {
+        for (let watcherId in msg.watchers) {
+            let watcher = msg.watchers[watcherId];
+            watcher.userName = this.encode(watcher.userName);
+        }
+    }
+
     static G_GameOver(msg: any) {
-        msg.ownerName = this.encode(msg.ownerName);
+        msg.ownerName = this.encode("" + msg.ownerName);
         let roomConf: any = {};
         for (let name in msg.roomConf) {
             let value = msg.roomConf[name];
@@ -36,6 +43,10 @@ export default class GameEncry extends BaseEncry {
             let record = msg.records[userId];
             record.userName = this.encode(record.userName);
         }
+    }
+
+    static G_GamberInfo(msg: any) {
+        msg.userName = this.encode(msg.userName);
     }
 
     static G_AddGamber(msg: any) {

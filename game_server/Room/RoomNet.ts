@@ -41,4 +41,10 @@ export default class RoomNet {
         let data = { userId: userId };
         NetUtil.userBroadcast(NetDefine.WS_Resp.G_LeaveRoom, data, userId, true);
     }
+
+    static G_ShowWatchers(userId: string, watchers: any) {
+        let data = { watchers: watchers };
+        NetUtil.sendMsg(userId, NetDefine.WS_Resp.G_ShowWatchers, data);
+    }
+    
 }

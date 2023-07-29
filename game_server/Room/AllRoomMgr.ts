@@ -117,6 +117,18 @@ export default class AllRoomMgr {
     }
 
     @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)
+    C_ShowWatchers(userId: string) {
+        let room = this.getRoomByUserId(userId);
+        return room && room.C_ShowWatchers(userId);
+    }
+
+    @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)
+    C_WatcherToGamber(userId: string) {
+        let room = this.getRoomByUserId(userId);
+        return room && room.updateReady(userId, true);
+    }
+
+    @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)
     C_EnterRoom(userId: string, roomId: string) {
         let room = this.rooms[roomId];
         if (room.getRoomUser(userId) != null) {
@@ -125,6 +137,10 @@ export default class AllRoomMgr {
         
         if (room.isRoomFull() && !room.canJoinHalfway()) {
             return ErrorCode.ROOM_IS_FULL;
+        }
+        
+        if (room.isBegin() && !room.canWatch()) {
+            return ErrorCode.ROOM_CANT_WATCH;
         }
 
         let user = AllUserMgr.ins.getUser(userId);

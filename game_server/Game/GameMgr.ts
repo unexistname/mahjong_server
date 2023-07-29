@@ -308,7 +308,7 @@ export default class GameMgr {
     }
 
     StateOver_settle(...args: any) {
-        this.updateGameState(GameConst.GameState.IDLE);
+        // this.updateGameState(GameConst.GameState.IDLE);
         this.saveGameLeftData({});
         this.room.gameOver();
     }
@@ -511,9 +511,9 @@ export default class GameMgr {
 
     reconnect(userId: string) {
         let gamber = this.getGamberByUserId(userId);
-        if (gamber == null) {
-            return ErrorCode.UNKOWN_GAMBER;
-        }
+        // if (gamber == null) {
+        //     return ErrorCode.UNKOWN_GAMBER;
+        // }
         for (let state of this.getAllState()) {
             LogUtil.debug("开始重连", userId, state)
             if (this.gameState == state) {
@@ -525,7 +525,7 @@ export default class GameMgr {
         }
     }
 
-    reconnectOnState(state: GameConst.GameState, userId: string, gamber: GamberModel) {
+    reconnectOnState(state: GameConst.GameState, userId: string, gamber?: GamberModel) {
         switch(state) {
             case GameConst.GameState.IDLE:
                 break;
@@ -544,12 +544,15 @@ export default class GameMgr {
             case GameConst.GameState.SHOW_CARD:
                 this.net.G_ShowCard(this.getShowCardData(), userId);
                 break;
-            case GameConst.GameState.SETTLE:this.net.G_GameSettle(this.getSettleData(this.forceOver), userId);
+            case GameConst.GameState.SETTLE:
+                let data = this.getSettleData(this.forceOver);
+                data.isReady = this.room.isReady(userId);
+                this.net.G_GameSettle(data, userId);
                 break;
         }
     }
 
-    reconnectOverState(state: GameConst.GameState, userId: string, gamber: GamberModel) {
+    reconnectOverState(state: GameConst.GameState, userId: string, gamber?: GamberModel) {
         switch(state) {
             case GameConst.GameState.IDLE:
                 this.reconnectOverIdle(userId);
@@ -603,7 +606,7 @@ export default class GameMgr {
         ];
     }
 
-    reconnectOnBetting(userId: string, gamber: GamberModel) {
+    reconnectOnBetting(userId: string, gamber?: GamberModel) {
         for (let record of this.recordMgr.operateRecords) {
             this.net.G_DoOperate(record.userId, record.operate, record.value, userId);
         }

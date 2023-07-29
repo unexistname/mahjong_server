@@ -67,7 +67,6 @@ export default class ZJHGameMgr extends TurnPokerGameMgr {
 
     @ConditionFilter(ErrorCode.NOT_YOUR_TURN)
     @ConditionFilter(ErrorCode.WAIVE_OR_ELIMINATE)
-    @ConditionFilter(ErrorCode.YOU_ALREADY_OPERATE)
     @ConditionFilter(ErrorCode.UNEXCEPT_OPERATE, ZJHOperate.CALL)
     C_Call(gamber: ZJHGamberModel) {
         let callNowCost = this.callNowCost;
@@ -86,7 +85,6 @@ export default class ZJHGameMgr extends TurnPokerGameMgr {
 
     @ConditionFilter(ErrorCode.NOT_YOUR_TURN)
     @ConditionFilter(ErrorCode.WAIVE_OR_ELIMINATE)
-    @ConditionFilter(ErrorCode.YOU_ALREADY_OPERATE)
     @ConditionFilter(ErrorCode.UNEXCEPT_OPERATE, ZJHOperate.RAISE)
     C_ShowRaise(gamber: ZJHGamberModel) {
         let callNowCost = this.callNowCost;
@@ -100,7 +98,6 @@ export default class ZJHGameMgr extends TurnPokerGameMgr {
 
     @ConditionFilter(ErrorCode.NOT_YOUR_TURN)
     @ConditionFilter(ErrorCode.WAIVE_OR_ELIMINATE)
-    @ConditionFilter(ErrorCode.YOU_ALREADY_OPERATE)
     @ConditionFilter(ErrorCode.UNEXCEPT_OPERATE, ZJHOperate.RAISE)
     C_Raise(gamber: ZJHGamberModel, value: number) {
         let callNowCost = this.callNowCost;
@@ -128,7 +125,6 @@ export default class ZJHGameMgr extends TurnPokerGameMgr {
 
     @ConditionFilter(ErrorCode.NOT_YOUR_TURN)
     @ConditionFilter(ErrorCode.WAIVE_OR_ELIMINATE)
-    @ConditionFilter(ErrorCode.YOU_ALREADY_OPERATE)
     @ConditionFilter(ErrorCode.UNEXCEPT_OPERATE, ZJHOperate.WATCH)
     C_Watch(gamber: ZJHGamberModel) {
         gamber.watchCardRound = this.smallRound;
@@ -151,7 +147,6 @@ export default class ZJHGameMgr extends TurnPokerGameMgr {
 
     @ConditionFilter(ErrorCode.NOT_YOUR_TURN)
     @ConditionFilter(ErrorCode.WAIVE_OR_ELIMINATE)
-    @ConditionFilter(ErrorCode.YOU_ALREADY_OPERATE)
     @ConditionFilter(ErrorCode.UNEXCEPT_OPERATE, ZJHOperate.COMPARE)
     C_Compare(gamber: ZJHGamberModel, cmpGamber: ZJHGamberModel) {
         let result = ZJHCardPointMgr.compare(gamber.holds, cmpGamber.holds) > 0 ? 1 : 0;
@@ -171,7 +166,6 @@ export default class ZJHGameMgr extends TurnPokerGameMgr {
 
     @ConditionFilter(ErrorCode.NOT_YOUR_TURN)
     @ConditionFilter(ErrorCode.WAIVE_OR_ELIMINATE)
-    @ConditionFilter(ErrorCode.YOU_ALREADY_OPERATE)
     @ConditionFilter(ErrorCode.UNEXCEPT_OPERATE, ZJHOperate.COMPARE)
     C_CompareSelect(gamber: ZJHGamberModel) {
         let cmpUserIds = []

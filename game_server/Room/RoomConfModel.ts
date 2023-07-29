@@ -3,14 +3,7 @@ import RoomMetaConfMgr from "./RoomMetaConfMgr";
 
 
 export default class RoomConfModel {
-    gameName: string;
-    // payTypes: number;
-    // roundAmount: number;
-    // isPrivate: boolean;
-    // baseScore: number;
-    // canJoinHalfway: boolean;
-    // extraConf: RoomExtraConfModel[];
-    
+    gameName: string;    
     costType: number;
     costNum: number;
 
@@ -28,10 +21,6 @@ export default class RoomConfModel {
             this.data[name] = value;
         }
     }
-
-    // get gameName() {
-    //     return this.getValue("游戏名称");
-    // }
 
     private _gamberAmount: number;
     get gamberAmount() {

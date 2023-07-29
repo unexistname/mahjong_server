@@ -28,6 +28,7 @@ import ZJHNet from "../Poker/CompareCard/Turn/ZhaJinHua/ZJHNet";
 import AllRoomMgr from "./AllRoomMgr";
 import RoomConfModel from "./RoomConfModel";
 import RoomUserModel from "./RoomUserModel";
+import RoomNet from "./RoomNet";
 
 
 export default class RoomMgr {
@@ -169,10 +170,16 @@ export default class RoomMgr {
                 this.gambers[userId] = watcher;
 
                 delete this.watchers[userId];
+                this.net.G_UpdateRoomOperate(this, userId);
                 this.net.G_WatcherToGamber(watcher);
                 this.net.G_Ready(watcher.userId, isReady);
             }
         }
+    }
+
+    isReady(userId: string) {
+        let gamber = this.gambers[userId];
+        return gamber && gamber.isReady;
     }
 
     @ConditionFilter(ErrorCode.ROOM_IS_BEGIN)
@@ -235,7 +242,11 @@ export default class RoomMgr {
     @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)
     C_Dissolve(userId: string) {
         if (this.isBegin()) {
-            this.beginDissolveVote(userId);
+            if (this.isRoomGamber(userId)) {
+                this.beginDissolveVote(userId);
+            } else {
+                this.leaveRoom(userId);
+            }
         } else {
             if (this.owner.userId == userId) {
                 this.dissolve();
@@ -248,9 +259,17 @@ export default class RoomMgr {
     @ConditionFilter(ErrorCode.ROOM_IS_UNEXIST)
     C_LeaveRoom(userId: string) {
         if (this.isBegin()) {
-            this.beginDissolveVote(userId);
+            if (this.isRoomGamber(userId)) {
+                this.beginDissolveVote(userId);
+            } else {
+                this.leaveRoom(userId);
+            }
         } else {
-            this.leaveRoom(userId);
+            if (this.owner.userId == userId) {
+                this.dissolve();
+            } else {
+                this.leaveRoom(userId);
+            }
         }
     }
 
@@ -295,7 +314,7 @@ export default class RoomMgr {
             if (Object.keys(this.dissolveVotes).length > 0) {
                 this.net.G_ShowDissolveVote();
                 for (let userId in this.dissolveVotes) {
-                    this.net.G_DissolveVote(userId, this.dissolveVotes[userId], userId);
+                    this.net.G_DissolveVote(userId, this.dissolveVotes[userId], user.userId);
                 }
             }
         }
@@ -345,11 +364,15 @@ export default class RoomMgr {
     }
 
     canWatch() {
-        return this.roomConf.canWatch;
+        return this.roomConf.canWatch || this.roomConf.canJoinHalfway;
+    }
+
+    canJoin(userId: string) {
+         return this.canJoinHalfway() && !this.isRoomFull() && !this.isRoomGamber(userId);
     }
 
     isPlaying() {
-        return this.game != null;// && this.game.gameState != GameConst.GameState.IDLE;
+        return this.game != null && this.game.gameState != GameConst.GameState.SETTLE;
         // return this.roomState == GameConst.RoomState.PLAY;
     }
 
@@ -374,8 +397,10 @@ export default class RoomMgr {
     }
 
     C_OverSettle(userId: string) {
-        if (this.isPlaying()) {
-            this.updateReady(userId, true);
+        if (this.round) {
+            if (this.isRoomGamber(userId)) {
+                this.updateReady(userId, true);
+            }
         } else {
             this.net.G_GameOver(userId, GameUtil.deepClone(this.record));
         }
@@ -481,6 +506,10 @@ export default class RoomMgr {
         } else {
             return ErrorCode.CANT_KICK_WHEN_PLAY;
         }
+    }
+
+    C_ShowWatchers(userId: string) {
+        RoomNet.G_ShowWatchers(userId, this.watchers);
     }
 
     canLeaveNow(userId: string) {

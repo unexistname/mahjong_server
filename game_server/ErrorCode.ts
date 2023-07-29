@@ -32,6 +32,7 @@ export enum ErrorCode {
     COMBINE_CARD_ERROR,
     WAIVE_OR_ELIMINATE,
     YOU_ALREADY_OPERATE,
+    ROOM_CANT_WATCH,
     
     OWNER_MONEY_NOT_ENOUGH,
     GAMBER_MONEY_NOT_ENOUGH,
@@ -98,7 +99,8 @@ errorMsg[ErrorCode.CARD_TYPE_DIFFERENT] = "牌型不对";
 errorMsg[ErrorCode.YOU_CARD_IS_SMALL] = "你的牌太小了";
 errorMsg[ErrorCode.COMBINE_CARD_ERROR] = "组牌有误";
 errorMsg[ErrorCode.WAIVE_OR_ELIMINATE] = "你现在不能进行操作";
-errorMsg[ErrorCode.YOU_ALREADY_OPERATE] = "你以及进行过操作";
+errorMsg[ErrorCode.YOU_ALREADY_OPERATE] = "你已经进行过操作";
+errorMsg[ErrorCode.ROOM_CANT_WATCH] = "此房间未开启观战";
 
 errorMsg[ErrorCode.OWNER_MONEY_NOT_ENOUGH] = "房主房费不足";
 errorMsg[ErrorCode.GAMBER_MONEY_NOT_ENOUGH] = "有玩家无法支付房费";

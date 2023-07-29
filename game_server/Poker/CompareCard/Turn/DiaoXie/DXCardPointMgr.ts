@@ -269,4 +269,8 @@ export default class DXCardPointMgr extends PokerCardPointMgr {
             return "dx_" + this.getMixCardPoint(holds);
         }
     }
+
+    static isZero(cardType: string) {
+        return cardType == "dx_0";
+    }
 }

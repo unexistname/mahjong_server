@@ -37,7 +37,7 @@ export default class NetUtil {
             if (includSender) {
                 this.sendMsg(senderId, cmd, data);
             }
-            LogUtil.error("[广播房间不存在]", senderId);
+            LogUtil.warn("[广播房间不存在]", senderId);
             return;
         }
         LogUtil.debug("[广播房间内用户列表]", room.getRoomUserIds(), senderId)

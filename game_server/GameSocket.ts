@@ -52,6 +52,10 @@ export default class GameSocket extends BaseSocket {
         return AllRoomMgr.ins.C_Voice(ws.userId, msg);
     }
 
+    static C_ShowWatchers(ws: any, msg: any) {
+        return AllRoomMgr.ins.C_ShowWatchers(ws.userId);
+    }
+
     static C_Rob(ws: any, msg: any) {
         return this.doOperate(ws, msg, (game: GameMgr, gamber: GamberModel) => {
             return (game as NNGameMgr).C_Rob(gamber, msg.score);
@@ -82,6 +86,10 @@ export default class GameSocket extends BaseSocket {
 
     static C_LeaveRoom(ws: any, msg: any) {
         return AllRoomMgr.ins.C_LeaveRoom(ws.userId);
+    }
+
+    static C_WatcherToGamber(ws: any, msg: any) {
+        return AllRoomMgr.ins.C_WatcherToGamber(ws.userId);
     }
 
     static CA_ShowReplaceCard(ws: any, msg: any) {
@@ -305,7 +313,6 @@ export default class GameSocket extends BaseSocket {
             return (game as MJGameMgr).C_Guo(<MJGamberModel>gamber);
         });
     }
-
 
     static getNetType() {
         return NetDefine.NetType.GAME_SOCKET;

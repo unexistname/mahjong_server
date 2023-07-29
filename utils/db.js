@@ -403,7 +403,8 @@ exports.get_all_player_wins_rate = function(callback) {
     });
 }
 
-exports.get_user_record = function(userId, callback) {
+exports.get_user_record = function(data, callback) {
+    let { userId, limit } = data;
     var where = "";
     for (var i = 0; i < 8; ++i) {
         if (where.length > 0) {
@@ -411,7 +412,10 @@ exports.get_user_record = function(userId, callback) {
         }
         where = where + "userId" + i + "=" + userId;
     }
-    var sql = "SELECT * FROM t_room_history where " + where;
+    var sql = "SELECT * FROM t_room_history where " + where + " order by time desc";
+    if (limit) {
+        sql += " limit 0, " + limit;
+    }
     query(sql, function(err, rows, fields) {
         if (err) {
             throw err;
@@ -474,6 +478,9 @@ exports.get_user_record = function(userId, callback) {
                 })
             }
             if (callback) {
+                // records.sort((a, b) => {
+                //     return b.time - a.time;
+                // });
                 callback(records);
             }
         })

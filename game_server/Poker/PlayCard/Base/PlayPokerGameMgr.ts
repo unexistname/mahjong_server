@@ -73,8 +73,7 @@ export default class PlayPokerGameMgr extends GameMgr {
         this.net.G_TurnBetting(this.turnGamber.userId, op);
 
         if (this.waiveWhenTimeout) {
-            this.beginTimer(5, () => {
-                console.log("qqqqqqqqqqqq");
+            this.beginTimer(GameConst.GameTime.BETTING, () => {
                 this.doTimeoutOperate();
             });
         }

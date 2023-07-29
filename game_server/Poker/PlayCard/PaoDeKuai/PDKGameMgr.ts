@@ -104,10 +104,10 @@ export default class PDKGameMgr extends PlayPokerGameMgr {
     }
 
     generateCardMgr(): CardMgr {
-        return new PDKCardMgr();
+        return new PDKCardMgr(this.gamberNum);
     }
 
     getBrightCardNum(): number {
-        return 16;
+        return this.gamberNum == 4 ? 13 : 16;
     }
 }

@@ -8,4 +8,5 @@ export default class DXOptionalOperate {
     static BELT = DXOperate.BELT | DXOperate.WAIVE;
     static EAT_BELT = DXOperate.EAT | DXOperate.BELT | DXOperate.WAIVE;
     static REVERSE_BELT = DXOperate.REVERSE_BELT | DXOperate.NO_BELT;
+    static EAT_WAIVE = DXOperate.EAT | DXOperate.WAIVE;
 }

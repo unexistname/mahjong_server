@@ -58,14 +58,19 @@ export default class GameNet {
                 clientHolds[userId].push(-1);
             }
         }
+        let hasSend = false;
         for (let userId in holds) {
             if (syncUserId && userId != syncUserId) {
                 continue;
             }
+            hasSend = true;
             let oldHold = clientHolds[userId];
             clientHolds[userId] = holds[userId];
             NetUtil.sendMsg(userId, NetDefine.WS_Resp.G_InitHolds, clientHolds);;
             clientHolds[userId] = oldHold;
+        }
+        if (syncUserId && !hasSend) {
+            NetUtil.sendMsg(syncUserId, NetDefine.WS_Resp.G_InitHolds, clientHolds);;
         }
     }
 
@@ -159,14 +164,14 @@ export default class GameNet {
     }
 
     G_AddWatcher(user: RoomUserModel) {
-        let data = {
-            userId: user.userId,
-            userName: user.userName,
-            sex: user.sex,
-            avatarUrl: user.avatarUrl,
-            seatIndex: user.seatIndex,
-        }
-        NetUtil.roomBroadcast(this.roomId, NetDefine.WS_Resp.G_AddWatcher, data);
+        // let data = {
+        //     userId: user.userId,
+        //     userName: user.userName,
+        //     sex: user.sex,
+        //     avatarUrl: user.avatarUrl,
+        //     seatIndex: user.seatIndex,
+        // }
+        NetUtil.roomBroadcast(this.roomId, NetDefine.WS_Resp.G_AddWatcher, user);
     }
 
     G_WatcherToGamber(user: RoomUserModel) {
@@ -199,6 +204,7 @@ export default class GameNet {
             canBegin: room.canBegin(userId),
             canDissolve: room.canDissolve(userId),
             canWatch: room.canWatch(),
+            canJoin: room.canJoin(userId),
         }
         NetUtil.sendMsg(userId, NetDefine.WS_Resp.G_UpdateRoomOperate, data);
     }

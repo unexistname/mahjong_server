@@ -13,7 +13,7 @@ export default class RecordMgr {
     }
 
     C_ShowRecord(userId: string) {
-        db.get_user_record(userId, (records: any) => {
+        db.get_user_record({ userId: userId, limit: 30 }, (records: any) => {
             RoomNet.G_ShowRecord(userId, records);
         })
     }

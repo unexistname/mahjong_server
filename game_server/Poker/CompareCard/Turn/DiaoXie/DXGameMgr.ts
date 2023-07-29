@@ -44,6 +44,15 @@ export default class DXGameMgr extends TurnPokerGameMgr {
         }
     }
 
+    StateOver_betting(...args: any) {
+        if (this.isGameCanOver(this.turnGamber)) {
+            this.updateGameState(GameConst.GameState.SHOW_CARD);
+            this.State_showCard();
+        } else {
+            this.State_betting();
+        }
+    }
+
     C_RubCard(gamber: GamberModel) {
         if (!this.rubCards[gamber.userId]) {
             this.rubCards[gamber.userId] = true;
@@ -107,7 +116,7 @@ export default class DXGameMgr extends TurnPokerGameMgr {
             // 2. 头家弃牌，轮到最后一家就结束
             // 3. 头家第二次操作完毕，结束
             if (this.getNextGamber(nextGamber) == this.banker) {
-                if (this.otherAllWaive(nextGamber)) {
+                if (this.otherAllWaive(this.banker)) {
                     return true;
                 }
             }
@@ -185,7 +194,7 @@ export default class DXGameMgr extends TurnPokerGameMgr {
             // 计算赔底
             let start = this.banker.seatIndex;
             let end = start + this.gamberNum;
-            let canEqual = true;
+            let canEqual = !DXCardPointMgr.isZero(this.getCardType(winner));
             for (let i = start; i < end; ++i) {
                 let index = i % this.gamberNum;
                 let gamber = this.gambers[index];
@@ -193,10 +202,9 @@ export default class DXGameMgr extends TurnPokerGameMgr {
                     continue;
                 }
                 if (gamber == winner) {
-                    if (this.isReverseBeltMode && winner == this.banker && winner.scoreReverse) {
-                        continue;
+                    if (!(this.isReverseBeltMode && winner == this.banker && winner.scoreReverse)) {
+                        canEqual = false;
                     }
-                    canEqual = false;
                     continue;
                 }
                 if (gamber.cardValue > winner.cardValue) {
@@ -316,20 +324,32 @@ export default class DXGameMgr extends TurnPokerGameMgr {
                 if (this.banker == gamber) {
                     return DXOptionalOperate.BLIND_EAT;
                 } else {
-                    return DXOptionalOperate.EAT_BELT;
+                    if (this.beltNowCost == this.fundPool) {
+                        return DXOptionalOperate.EAT_WAIVE;
+                    } else {
+                        return DXOptionalOperate.EAT_BELT;
+                    }
                 }
             } else {
                 if (this.eatNoRub) {
                     if (this.banker == gamber) {
                         return DXOptionalOperate.BLIND_EAT_TOUCH;
                     } else {
-                        return DXOptionalOperate.EAT_BELT;
+                        if (this.beltNowCost == this.fundPool) {
+                            return DXOptionalOperate.EAT_WAIVE;
+                        } else {
+                            return DXOptionalOperate.EAT_BELT;
+                        }
                     }
                 } else {
                     if (this.banker == gamber) {
                         return DXOptionalOperate.EAT_TOUCH;
                     } else {
-                        return DXOptionalOperate.EAT_TOUCH_BELT;
+                        if (this.beltNowCost == this.fundPool) {
+                            return DXOptionalOperate.EAT_TOUCH;
+                        } else {
+                            return DXOptionalOperate.EAT_TOUCH_BELT;
+                        }
                     }
                 }
             }
@@ -337,7 +357,11 @@ export default class DXGameMgr extends TurnPokerGameMgr {
             if (this.banker == gamber) {
                 return DXOptionalOperate.EAT_TOUCH;
             } else {
-                return DXOptionalOperate.EAT_TOUCH_BELT;
+                if (this.beltNowCost == this.fundPool) {
+                    return DXOptionalOperate.EAT_TOUCH;
+                } else {
+                    return DXOptionalOperate.EAT_TOUCH_BELT;
+                }
             }
         }
     }
@@ -374,8 +398,8 @@ export default class DXGameMgr extends TurnPokerGameMgr {
     //     }
     // }
 
-    reconnectOnBetting(userId: string, gamber: DXGamberModel) {
-        if (this.rubCards[userId]) {
+    reconnectOnBetting(userId: string, gamber?: DXGamberModel) {
+        if (gamber && this.rubCards[userId]) {
             let cardType = this.getCardType(gamber);
             this.net.G_SeeCard(gamber.userId, gamber.holds, cardType);
         }

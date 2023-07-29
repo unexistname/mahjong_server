@@ -246,9 +246,11 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
             return false;
         }
         let cnt = this.getSameCardValueCnt(cards);
+        console.log("aaaaaaaa");
         if (!(cnt[1] && cnt[3]) && !cnt[4]) {
             return false;
         }
+        console.log("bbbbbbbbb");
         let amount = 0;
         amount += cnt[1] ? cnt[1] : 0;
         amount += cnt[3] ? cnt[3] * 3 : 0;
@@ -256,14 +258,20 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
         if (amount != cards.length) {
             return false;
         }
-        let dict = this.parseCardValueTable(cards);
+        let dict = this.parseCardPointTable(cards);
         let straight = [];
         for (let card in dict) {
             if (dict[card] == 3 || dict[card] == 4) {
                 straight.push(Number(card));
             }
         }
-        return this.isStraight(straight);
+        return this.isContinuous(straight);
+    }
+
+    static isContinuous(points: number[]) {
+        points.sort();
+        let gap = points[points.length - 1] - points[0]
+        return gap + 1 == points.length;
     }
 
     static isThreeStraightBeltPair(cards: number[]) {
@@ -277,14 +285,14 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
         if (cnt[2] * 2 + cnt[3] * 3 != cards.length) {
             return false;
         }
-        let dict = this.parseCardValueTable(cards);
+        let dict = this.parseCardPointTable(cards);
         let straight = [];
         for (let card in dict) {
             if (dict[card] == 3) {
                 straight.push(Number(card));
             }
         }
-        return this.isStraight(straight);
+        return this.isContinuous(straight);
     }
 
     static isBetter(cards1: number[], cards2: number[]) {

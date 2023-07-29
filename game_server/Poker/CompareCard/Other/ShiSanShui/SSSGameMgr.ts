@@ -1,8 +1,10 @@
 import { ConditionFilter } from "../../../../../utils/ConditionFilter";
 import { ErrorCode } from "../../../../ErrorCode";
+import CardMgr from "../../../../Game/CardMgr";
 import GamberModel from "../../../../Game/GamberModel";
 import GameMgr from "../../../../Game/GameMgr";
 import { GameConst } from "../../../../GameConst";
+import SSSCardMgr from "./SSSCardMgr";
 import SSSCardPointMgr from "./SSSCardPointMgr";
 import SSSGamberModel from "./SSSGamberModel";
 import SSSNet from "./SSSNet";
@@ -246,6 +248,10 @@ export default class SSSGameMgr extends GameMgr {
                 GameConst.GameState.SHOW_CARD,
                 GameConst.GameState.SETTLE,
             ]
+    }
+
+    generateCardMgr(): CardMgr {
+        return new SSSCardMgr(this.gamberNum);
     }
 
     generateGamber() {

@@ -35,6 +35,8 @@ export namespace NetDefine {
         C_QuickChat,
         C_Emoji,
         C_DissolveVote,
+        C_WatcherToGamber,
+        C_ShowWatchers,
 
         // 管理员特殊操作
         CA_ShowReplaceCard,
@@ -134,6 +136,7 @@ export namespace NetDefine {
         G_GameOver,
         G_TurnPlayCard,
         G_DecideWind,
+        G_ShowWatchers,
         
         G_ShowTouch,
         G_RubCard,

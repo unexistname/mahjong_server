@@ -25,10 +25,6 @@ export default class HallHttp extends BaseHttp {
         this.send(res, RechargeMgr.ins.getAllRecharge());
     }
 
-    static C_Recharge(res: any, msg: any) {
-        this.C_Pay(res, msg);
-    }
-
     static C_Pay(res: any, msg: any) {
         LogUtil.debug(`[HallHttp C_Pay] data= ${msg}`);
 

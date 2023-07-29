@@ -42,6 +42,12 @@ export default class TurnPokerGameMgr extends GameMgr {
             this.bankerId = this.banker.userId;
             this.net.G_DecideBanker(this.bankerId, this.getGamberIds());
         } else {
+            for (let gamber of this.gambers) {
+                if (gamber.userId == this.bankerId) {
+                    this.banker = gamber;
+                    break;
+                }
+            }            
             this.net.G_DecideBanker(this.bankerId, []);
         }
         this.nextState();
@@ -58,7 +64,7 @@ export default class TurnPokerGameMgr extends GameMgr {
     }
 
     State_betting(gamber?: GamberModel | undefined): void {
-        // this.turnGamber = this.getNextLiveGamber(this.turnGamber, gamber);
+        this.turnGamber = this.getNextLiveGamber(this.turnGamber, gamber);
         // this.turnGamber.hasBetting = false;
         let op = this.getOptionalOperate(this.turnGamber);
         this.net.G_TurnBetting(this.turnGamber.userId, op);

@@ -344,7 +344,7 @@ app.get("/add_gem", function(req, res) {
 app.get("/get_all_record", function(req, res) {
     let userId = req.query.userId;
     safeDoAction(req, res, function() {
-        db.get_user_record(userId, function(data) {
+        db.get_user_record({ userId: userId }, function(data) {
             res.end(JSON.stringify(data));
         });
     });

@@ -31,7 +31,7 @@ export default class RechargeMgr {
             this.recharges = {};
             for (let data of datas) {
                 this.recharges[data.id] = {
-                    rechageId: data.id,
+                    rechargeId: data.id,
                     price: data.presentPrice,
                     propId: data.propId,
                     propAmount: data.propAmount,
