@@ -65,6 +65,7 @@ export default class TurnPokerGameMgr extends GameMgr {
 
     State_betting(gamber?: GamberModel | undefined): void {
         this.turnGamber = this.getNextLiveGamber(this.turnGamber, gamber);
+        this.onChangeTurnGamber(this.turnGamber);
         // this.turnGamber.hasBetting = false;
         let op = this.getOptionalOperate(this.turnGamber);
         this.net.G_TurnBetting(this.turnGamber.userId, op);
@@ -88,7 +89,6 @@ export default class TurnPokerGameMgr extends GameMgr {
 
     getNextLiveGamber(lastTurnGamber: GamberModel, assignTurnGamber?: GamberModel) {
         if (assignTurnGamber) {
-            this.onChangeTurnGamber(assignTurnGamber);
             return assignTurnGamber;
         }
         let start = lastTurnGamber.seatIndex + 1;
@@ -96,8 +96,8 @@ export default class TurnPokerGameMgr extends GameMgr {
         for (let i = start; i < end; ++i) {
             let index = i % this.gamberNum;
             let gamber = this.gambers[index];
-            this.onChangeTurnGamber(gamber);
             if (gamber.eliminate || gamber.waive) {
+                this.onChangeTurnGamber(gamber);
                 continue;
             }
             return gamber;

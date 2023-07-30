@@ -90,7 +90,6 @@ export default class GameMgr {
         }
 
         this.round = this.room.round;
-        this.cardMgr = this.generateCardMgr();
         this.recordMgr = this.recordMgr || new GameRecord();
         this.gambers = [];
         for (let i = 0; i < gambers.length; ++i) {
@@ -110,6 +109,7 @@ export default class GameMgr {
             return a.seatIndex - b.seatIndex;
         });
         this.gameState = GameConst.GameState.IDLE;
+        this.cardMgr = this.generateCardMgr();
 
         this.initGame();
         this.updatePermissions();

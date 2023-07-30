@@ -2,7 +2,7 @@
 export enum ErrorCode {
     SUCCESS,
     UNKNOWN_ERROR,
-    ROOM_IS_BEGIN,
+    ROOM_IS_PLAYING,
     GAME_NOT_BEGIN,
     YOU_ARE_NOT_OWNER,
     HAVE_GAMBER_NO_READY,
@@ -70,7 +70,7 @@ export enum ErrorCode {
 let errorMsg: any = {};
 errorMsg[ErrorCode.SUCCESS] = "";
 errorMsg[ErrorCode.UNKNOWN_ERROR] = "未知错误";
-errorMsg[ErrorCode.ROOM_IS_BEGIN] = "房间已开始游戏";
+errorMsg[ErrorCode.ROOM_IS_PLAYING] = "房间已开始游戏";
 errorMsg[ErrorCode.YOU_ARE_NOT_OWNER] = "你不是房主";
 errorMsg[ErrorCode.HAVE_GAMBER_NO_READY] = "有玩家未准备";
 errorMsg[ErrorCode.NO_CARD_CAN_DRAW] = "没有牌可以抽了";

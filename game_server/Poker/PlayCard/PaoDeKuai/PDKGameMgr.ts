@@ -16,22 +16,34 @@ export default class PDKGameMgr extends PlayPokerGameMgr {
     folds: number[] = [];
     sortCard: boolean = true;
 
+    saveGameLeftData(data: any = {}) {
+        data.winnerId = this.winnerId;
+        super.saveGameLeftData(data);
+    }
+
+    setGameInitData(data: any) {
+        for (let gamber of this.gambers) {
+            if (gamber.userId == data.winnerId) {
+                this.banker = gamber;
+                return;
+            }
+        }
+    }
+
     StateOver_idle(...args: any): void {
         this.updateGameState(GameConst.GameState.DRAW_CARD);
         this.State_drawCard();
     }
 
     StateOver_drawCard(...args: any): void {
-        let bankerCard = PokerCardPointMgr.getCard(PokerCardDecor.SPADE, 3);
-        for (let gamber of this.gambers) {
-            if (gamber.hasCard(bankerCard)) {
-                this.banker = gamber;
-                break;
-            }
-        }
         if (this.banker == null) {
-            let index = GameUtil.random(this.gamberNum - 1);
-            this.banker = this.gambers[index];
+            let bankerCard = PokerCardPointMgr.getCard(PokerCardDecor.SPADE, 3);
+            for (let gamber of this.gambers) {
+                if (gamber.hasCard(bankerCard)) {
+                    this.banker = gamber;
+                    break;
+                }
+            }
         }
 
         this.net.G_DecideBanker(this.banker.userId, []);
@@ -41,12 +53,10 @@ export default class PDKGameMgr extends PlayPokerGameMgr {
     }
 
     doTimeoutOperate() {
-        console.log("kkkkkkkkkkk");
         if (this.lastPlayGamber == null) {
             this.C_PlayCard(this.turnGamber, [this.turnGamber.holds[this.turnGamber.holds.length - 1]]);
         } else {
             let cards = this.getCardPointMgr().getTipHold(this.folds, this.turnGamber.holds);
-            console.log("zzzzzzzzzzzzz", this.turnGamber, cards);
             if (cards && cards.length > 0) {
                 this.C_PlayCard(this.turnGamber, cards);
             } else {
@@ -96,6 +106,7 @@ export default class PDKGameMgr extends PlayPokerGameMgr {
         }
         if (winner) {
             this.changeGamberScore(winner, winScore);
+            this.winnerId = winner.userId;
         }
     }
 

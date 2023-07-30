@@ -29,7 +29,7 @@ export default class AllRoomMgr {
     addRoom(room: RoomMgr) {
         this.rooms[room.roomId] = room;
         LogUtil.debug("创建房间", this.rooms, room.roomId);
-        HallSocket.broadcast(NetDefine.WS_Resp.G_RoomAdd, room);
+        // HallSocket.broadcast(NetDefine.WS_Resp.G_RoomAdd, room);
     }
 
     delRoom(roomId: string) {

@@ -18,7 +18,7 @@ let CARD_TYPE = {
 export default class DZCardPointMgr extends PokerCardPointMgr {
     
     static getPairCardPoint(cards: number[]) {    
-        let amount: {[key: number]: number[] } = this.parseCardValueAmountTable(cards);
+        let amount: {[key: number]: number[] } = this.parseCardPointAmountTable(cards);
     
         var point = 0;
         for (var i = 4; i >= 1; --i) {

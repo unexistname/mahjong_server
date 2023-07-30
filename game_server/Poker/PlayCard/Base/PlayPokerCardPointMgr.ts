@@ -246,11 +246,9 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
             return false;
         }
         let cnt = this.getSameCardValueCnt(cards);
-        console.log("aaaaaaaa");
         if (!(cnt[1] && cnt[3]) && !cnt[4]) {
             return false;
         }
-        console.log("bbbbbbbbb");
         let amount = 0;
         amount += cnt[1] ? cnt[1] : 0;
         amount += cnt[3] ? cnt[3] * 3 : 0;

@@ -5,6 +5,7 @@ import NetUtil from "../../base_net/NetUtil";
 import RoomMgr from "../Room/RoomMgr";
 import RoomUserModel from "../Room/RoomUserModel";
 import { GameConst } from "../GameConst";
+import AllRoomMgr from "../Room/AllRoomMgr";
 
 export default class GameNet {
 
@@ -58,19 +59,27 @@ export default class GameNet {
                 clientHolds[userId].push(-1);
             }
         }
+        let room = AllRoomMgr.ins.getRoom(this.roomId);
         let hasSend = false;
-        for (let userId in holds) {
-            if (syncUserId && userId != syncUserId) {
-                continue;
+        if (room) {
+            for (let userId of room.getRoomUserIds()) {
+                if (syncUserId && userId != syncUserId) {
+                    continue;
+                }
+                hasSend = true;
+
+                let oldHold = clientHolds[userId];
+                if (oldHold) {
+                    clientHolds[userId] = holds[userId];
+                    NetUtil.sendMsg(userId, NetDefine.WS_Resp.G_InitHolds, clientHolds);
+                    clientHolds[userId] = oldHold;
+                } else {
+                    NetUtil.sendMsg(userId, NetDefine.WS_Resp.G_InitHolds, clientHolds);
+                }
             }
-            hasSend = true;
-            let oldHold = clientHolds[userId];
-            clientHolds[userId] = holds[userId];
-            NetUtil.sendMsg(userId, NetDefine.WS_Resp.G_InitHolds, clientHolds);;
-            clientHolds[userId] = oldHold;
         }
         if (syncUserId && !hasSend) {
-            NetUtil.sendMsg(syncUserId, NetDefine.WS_Resp.G_InitHolds, clientHolds);;
+            NetUtil.sendMsg(syncUserId, NetDefine.WS_Resp.G_InitHolds, clientHolds);
         }
     }
 

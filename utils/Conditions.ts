@@ -12,9 +12,9 @@ import SSSCardPointMgr from "../game_server/Poker/CompareCard/Other/ShiSanShui/S
 
 let conditions: any = {};
 
-conditions[ErrorCode.ROOM_IS_BEGIN] = (room: RoomMgr) => {
-    if (room.roomState != GameConst.RoomState.IDLE) {
-        return ErrorCode.ROOM_IS_BEGIN;
+conditions[ErrorCode.ROOM_IS_PLAYING] = (room: RoomMgr) => {
+    if (room.isPlaying()) {
+        return ErrorCode.ROOM_IS_PLAYING;
     }
 }
 

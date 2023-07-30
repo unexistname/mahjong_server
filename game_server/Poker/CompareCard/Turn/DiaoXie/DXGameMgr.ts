@@ -16,7 +16,7 @@ export default class DXGameMgr extends TurnPokerGameMgr {
 
     beltNowCost: number = 0;
     bankerOnlyEat: boolean;
-    eatNoRub: boolean;
+    eatNoRub: boolean = true;
     rubCards: { [key: string]: boolean } = {};
 
     get isBlintEatMode() {
@@ -44,17 +44,11 @@ export default class DXGameMgr extends TurnPokerGameMgr {
         }
     }
 
-    StateOver_betting(...args: any) {
-        if (this.isGameCanOver(this.turnGamber)) {
-            this.updateGameState(GameConst.GameState.SHOW_CARD);
-            this.State_showCard();
-        } else {
-            this.State_betting();
-        }
-    }
-
     C_RubCard(gamber: GamberModel) {
         if (!this.rubCards[gamber.userId]) {
+            if (this.banker == gamber && this.turnGamber == gamber) {
+                this.eatNoRub =  false;
+            }
             this.rubCards[gamber.userId] = true;
             this.net.G_RubCard(gamber.userId, gamber.holds);
             if (this.turnGamber == gamber) {
@@ -69,6 +63,9 @@ export default class DXGameMgr extends TurnPokerGameMgr {
     @ConditionFilter(ErrorCode.GAME_STATE_ERROR, GameConst.GameState.BETTING)
     C_SeeCard(gamber: GamberModel) {
         if (!this.rubCards[gamber.userId]) {
+            if (this.banker == gamber && this.turnGamber == gamber) {
+                this.eatNoRub =  false;
+            }
             this.rubCards[gamber.userId] = true;
             let cardType = this.getCardType(gamber);
             this.net.G_SeeCard(gamber.userId, gamber.holds, cardType);
@@ -109,43 +106,31 @@ export default class DXGameMgr extends TurnPokerGameMgr {
     }
 
     isGameCanOver(turnGamber: GamberModel) {
-        let nextGamber = this.getNextGamber(this.turnGamber);
+        if (this.getNextGamber(turnGamber) == this.banker) {
+            if (this.otherAllWaive(turnGamber)) {
+                return true;
+            }
+        }
+
         if (this.isReverseBeltMode) {
             // 反带模式下
             // 1. 除了头家，其他全弃，再轮到头家就结束
             // 2. 头家弃牌，轮到最后一家就结束
             // 3. 头家第二次操作完毕，结束
-            if (this.getNextGamber(nextGamber) == this.banker) {
+            if (turnGamber == this.banker) {
                 if (this.otherAllWaive(this.banker)) {
                     return true;
                 }
             }
-            if (nextGamber == this.banker) {
-                if (this.banker.waive || this.otherAllWaive(this.banker)) {
-                    return true;
-                }
-            }
-            if (turnGamber == this.banker) {
-                if (turnGamber.scoreBettings.length >= 2) {
-                    return true;
-                }
+            if (turnGamber != this.banker && turnGamber.scoreBettings.length >= 1) {
+                return true;
             }
             return false;
         } else {
             // 正常模式下
             // 1. 除了最后一家，其他全弃，轮到最后一家就结束
             // 2. 最后一家操作完毕，结束
-            if (this.getNextGamber(nextGamber) == this.banker) {
-                for (let gamber of this.gambers) {
-                    if (gamber == nextGamber) {
-                        continue;
-                    }
-                    if (!gamber.waive) {
-                        return false;
-                    }
-                }
-                return true;
-            } else if (nextGamber == this.banker) {
+            if (turnGamber.scoreBettings.length >= 1) {
                 return true;
             }
             return false;
@@ -185,7 +170,6 @@ export default class DXGameMgr extends TurnPokerGameMgr {
         }
         if (mayBeLose) {
             winnerScore = winner.scoreBetting;
-            // winner.scoreBetting -= winner.scoreReverse;
         } else {
             winnerScore = winner.scoreBetting + winner.scoreReverse;
         }
@@ -198,13 +182,13 @@ export default class DXGameMgr extends TurnPokerGameMgr {
             for (let i = start; i < end; ++i) {
                 let index = i % this.gamberNum;
                 let gamber = this.gambers[index];
-                if (!gamber.waive) {
-                    continue;
-                }
                 if (gamber == winner) {
                     if (!(this.isReverseBeltMode && winner == this.banker && winner.scoreReverse)) {
                         canEqual = false;
                     }
+                    continue;
+                }
+                if (!gamber.waive) {
                     continue;
                 }
                 if (gamber.cardValue > winner.cardValue) {
@@ -288,9 +272,6 @@ export default class DXGameMgr extends TurnPokerGameMgr {
     @ConditionFilter(ErrorCode.NOT_YOUR_TURN)
     @ConditionFilter(ErrorCode.UNEXCEPT_OPERATE, DXOperate.BLIND_EAT)
     C_BlindEat(gamber: GamberModel) {
-        if (this.banker == gamber) {
-            this.eatNoRub =  true;
-        }
         this.betting(<DXGamberModel>gamber, DXOperate.BLIND_EAT, this.fundPool);
     }
 
@@ -316,7 +297,7 @@ export default class DXGameMgr extends TurnPokerGameMgr {
     }
 
     getOptionalOperate(gamber: GamberModel) {
-        if (this.isReverseBeltMode && gamber.scoreBetting > 0) {
+        if (this.isReverseBeltMode && gamber == this.banker && gamber.scoreBetting > 0) {
             return DXOptionalOperate.REVERSE_BELT;
         }
         if (this.isBlintEatMode) {

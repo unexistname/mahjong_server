@@ -164,8 +164,8 @@ export default class RoomMgr {
         } else if (isReady && !this.isRoomFull() && this.canJoinHalfway()) {
             let watcher = this.watchers[userId];
             if (watcher) {
-                
                 watcher.seatIndex = this.getEnableSeatIndex();
+                watcher.isReady = isReady;
                 this.seats[watcher.seatIndex] = userId;
                 this.gambers[userId] = watcher;
 
@@ -182,7 +182,7 @@ export default class RoomMgr {
         return gamber && gamber.isReady;
     }
 
-    @ConditionFilter(ErrorCode.ROOM_IS_BEGIN)
+    @ConditionFilter(ErrorCode.ROOM_IS_PLAYING)
     @ConditionFilter(ErrorCode.HAVE_GAMBER_NO_READY)
     @ConditionFilter(ErrorCode.YOU_ARE_NOT_OWNER)
     beginGame(userId: string) {
@@ -333,7 +333,6 @@ export default class RoomMgr {
             this.net.G_Ready(userId, false);
             this.net.G_UpdateRoomOperate(this, gamber.userId);
         }
-        this.roomState = GameConst.RoomState.IDLE;
 
         if (this.game) {
             if (this.round == this.roomConf.roundAmount && this.game.isRoundOver()) {
@@ -354,7 +353,7 @@ export default class RoomMgr {
     }
 
     canBegin(userId: string) {
-        return !this.isBegin()
+        return !this.isPlaying()
                  && userId == this.owner.userId
                  && this.owner.isReady;
     }
