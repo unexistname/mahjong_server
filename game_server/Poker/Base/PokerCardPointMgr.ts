@@ -50,6 +50,40 @@ export default class PokerCardPointMgr {
         return false;
     }
     
+    static findCards(holds: number[], points: number[], amount: number) {
+        let dict = this.parseCardPointTable(holds);
+        for (let point of points) {
+            if (!dict[point] || dict[point] < amount) {
+                return;
+            }
+        }
+        let cnt: { [ key: string ] : number } = {};
+        let res = [];
+        for (let hold of holds) {
+            let point = this.getCardPoint(hold);
+            if (points.indexOf(point) >= 0) {
+                if (cnt[point] && cnt[point] >= amount) {
+                    continue;
+                }
+                cnt[point] = cnt[point] ? cnt[point] + 1 : 1;
+                res.push(hold);
+            }
+        }
+        return res;
+    }
+
+    static parseCardDecorPokerTable(cards: number[]) {
+        let dict: {[key:number]: number[]} = {};
+        for (let card of cards) {
+            let decor = this.getCardDecor(card);
+            if (!dict[decor]) {
+                dict[decor] = [];
+            }
+            dict[decor].push(card);
+        }
+        return dict;
+    }
+    
     static parseCardValueTable(cards: number[]) {
         let dict: {[key:number]: number} = {};
         for (let card of cards) {
@@ -64,6 +98,36 @@ export default class PokerCardPointMgr {
         for (let card of cards) {
             let value = this.getCardDecor(card);
             dict[value] = dict[value] ? dict[value] + 1 : 1;
+        }
+        return dict;
+    }
+
+    static changePointToPoker(point: number, decor: number) {
+        let value = point > 13 ? point - 13 : point;
+        return value * 10 + decor;
+    }
+    
+    static parseCardPointPokerTable(cards: number[]) {
+        let dict: {[key:number]: number[]} = {};
+        for (let card of cards) {
+            let point = this.getCardPoint(card);
+            if (!dict[point]) {
+                dict[point] = [];
+            }
+            dict[point].push(card);
+        }
+        return dict;
+    }
+    
+    static parseCardPointDecorTable(cards: number[]) {
+        let dict: {[key:number]: number[]} = {};
+        for (let card of cards) {
+            let point = this.getCardPoint(card);
+            let decor = this.getCardDecor(card);
+            if (!dict[point]) {
+                dict[point] = [];
+            }
+            dict[point].push(decor);
         }
         return dict;
     }

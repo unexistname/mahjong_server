@@ -24,10 +24,8 @@ export default class SSSGameMgr extends GameMgr {
     StateOver_drawCard() {
         super.StateOver_drawCard();
         for (let gamber of this.gambers) {
-            let cardType = SSSCardPointMgr.getSpecialCardType(gamber.holds);
-            if (cardType) {
-                this.net.G_Special(gamber.userId, cardType);
-            }
+            gamber.tipCards = SSSCardPointMgr.getTipCard(gamber.holds);
+            this.net.G_OptionalCard(gamber.userId, gamber.tipCards);
         }
     }
 
@@ -54,10 +52,8 @@ export default class SSSGameMgr extends GameMgr {
     @ConditionFilter(ErrorCode.COMBINE_CARD_ERROR)
     @ConditionFilter(ErrorCode.CANT_POUR_WATER)
     C_Combine(gamber: SSSGamberModel, cards: number[][]) {
-        if (gamber.hasBetting) {
-            return ErrorCode.UNEXCEPT_OPERATE;
-        }
         gamber.hasBetting = true;
+        gamber.useSpecialCard = false;
         gamber.combineCards = cards;
 
         this.net.G_Combine(gamber.userId, gamber.combineCards);
@@ -78,30 +74,6 @@ export default class SSSGameMgr extends GameMgr {
             this.updateGameState(GameConst.GameState.SHOW_CARD);
             this.State_showCard();
         }
-    }
-
-    State_showCard() {
-        let data: any = {};
-        for (let gamber of this.gambers) {
-            if (gamber.useSpecialCard) {
-                gamber.cardType = SSSCardPointMgr.getSpecialCardType(gamber.holds);
-            } else {
-                gamber.cardType = [];
-                for (let j = 0; j < 3; j++) {
-                    // @ts-ignore
-                    gamber.cardType.push(SSSCardPointMgr.getCommonCardType(gamber.combineCards[j]));
-                }
-            }
-            data[gamber.userId] = {
-                userId: gamber.userId,
-                holds: gamber.holds,
-                combineCards: gamber.combineCards,
-                useSpecialCard: gamber.useSpecialCard,
-                cardType: gamber.cardType,
-            };
-        }
-        this.net.G_ShowCard(data);
-        this.nextState();
     }
 
     settle() {
@@ -158,7 +130,7 @@ export default class SSSGameMgr extends GameMgr {
                 
                 // 打枪翻倍
                 if (win1 == 0 && win2 > 0) {    // 被打枪或者碾过
-                    gamber2.shoot.push(i);
+                    gamber2.shoot.push(gamber.userId);
                     this.changeGamberScore(gamber, -winPoint);
                     this.changeGamberScore(gamber2, winPoint);
                     // gamber2.score += winPoint;
@@ -166,7 +138,7 @@ export default class SSSGameMgr extends GameMgr {
                     addKill(j, i, winPoint * 2);
                 }
                 if (win2 == 0 && win1 > 0) {
-                    gamber.shoot.push(j);
+                    gamber.shoot.push(gamber2.userId);
                     this.changeGamberScore(gamber, winPoint);
                     this.changeGamberScore(gamber2, -winPoint);
                     // gamber.score += winPoint;
@@ -231,6 +203,38 @@ export default class SSSGameMgr extends GameMgr {
                     // gamber2.score -= kill[i][j];
                 }
             }
+        }
+    }
+
+    reconnectOverDrawCard(userId: string): void {
+        super.reconnectOverDrawCard(userId);
+        let gamber = <SSSGamberModel>this.getGamberByUserId(userId);
+        gamber && this.net.G_OptionalCard(userId, gamber.tipCards);
+    }
+
+    reconnectOnBetting(userId: string, gamber?: SSSGamberModel | undefined): void {
+        super.reconnectOnBetting(userId, gamber);
+        if (gamber && gamber.hasBetting) {
+            this.net.G_Combine(userId, gamber.combineCards)
+        }
+    }
+
+    getShowCardExtData(gamber: SSSGamberModel) {
+        if (gamber.useSpecialCard) {
+            gamber.cardType = SSSCardPointMgr.getSpecialCardType(gamber.holds);
+        } else {
+            gamber.cardType = [];
+            for (let j = 0; j < 3; j++) {
+                // @ts-ignore
+                gamber.cardType.push(SSSCardPointMgr.getCommonCardType(gamber.combineCards[j]));
+            }
+        }
+        return {
+            combineCards: gamber.combineCards,
+            useSpecialCard: gamber.useSpecialCard,
+            cardType: gamber.cardType,
+            shoot: gamber.shoot,
+            dead: false,
         }
     }
 

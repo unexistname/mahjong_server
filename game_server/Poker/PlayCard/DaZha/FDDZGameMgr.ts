@@ -6,19 +6,19 @@ import FDDZCardMgr from "./FDDZCardMgr";
 import FDDZCardPointMgr from "./FDDZCardPointMgr";
 import FDDZNet from "./FDDZNet";
 import PlayPokerGameMgr from "../Base/PlayPokerGameMgr";
+import PlayPokerGamberModel from "../Base/PlayPokerGamberModel";
 
 
 export default class FDDZGameMgr extends PlayPokerGameMgr {
 
-    bankerFriend: GamberModel;
+    bankerFriend: PlayPokerGamberModel;
     friendCard: number;
     net:  FDDZNet;
-    lastPlayGamber: GamberModel | null;
     folds: number[] = [];
-    fundPool: number = 0;
-    winner: GamberModel;
+    winner: PlayPokerGamberModel;
     sortCard: boolean = true;
     isEatPointMode: boolean = true;
+    isHaveBombBonus: boolean = true;
 
     State_decideBanker() {
         let bankerIndex = GameUtil.random(this.gamberNum - 1);
@@ -86,7 +86,7 @@ export default class FDDZGameMgr extends PlayPokerGameMgr {
         return false;
     }
 
-    getFriend(gamber: GamberModel) {
+    getFriend(gamber: PlayPokerGamberModel) {
         for (let otherGamber of this.gambers) {
             if (otherGamber == gamber) {
                 continue;
@@ -99,14 +99,14 @@ export default class FDDZGameMgr extends PlayPokerGameMgr {
     }
 
     settle(): void {
-        this.winner.scoreBetting += this.fundPool;
+        this.winner.scorePoint += this.fundPool;
         for (let gamber of this.gambers) {
             if (gamber.holds.length > 0) {
-                this.winner.scoreBetting += FDDZCardPointMgr.getFoldPoint(gamber.holds);
+                this.winner.scorePoint += FDDZCardPointMgr.getFoldPoint(gamber.holds);
             }
         }
         let friend = this.getFriend(this.winner);
-        let betting = friend.scoreBetting + this.winner.scoreBetting;
+        let betting = friend.scorePoint + this.winner.scorePoint;
         let score = this.baseScore;
         if (betting >= 200) {
             score *= 2;
@@ -121,11 +121,21 @@ export default class FDDZGameMgr extends PlayPokerGameMgr {
             }
             this.changeGamberScore(gamber, -score, false);
         }
+        for (let gamber of this.gambers) {
+            for (let otherGamber of this.gambers) {
+                if (gamber == otherGamber) {
+                    continue;
+                }
+                this.changeGamberScore(otherGamber, -gamber.scoreBonus * this.baseScore, false);
+            }
+            this.changeGamberScore(gamber, gamber.scoreBonus * this.baseScore * (this.gamberNum - 1), false);
+        }
     }
 
-    getSettleExtraData(gamber: GamberModel) {
+    getSettleExtraData(gamber: PlayPokerGamberModel) {
         return {
-            point: gamber.scoreBetting,
+            point: gamber.scorePoint,
+            bonus: gamber.scoreBonus,
         }
     }
 
@@ -137,16 +147,18 @@ export default class FDDZGameMgr extends PlayPokerGameMgr {
         }
     }
 
-    refshBombBonus(gamber: GamberModel, cards: number[]) {
-        let score = this.getCardPointMgr().getBonusFactor(cards) * this.baseScore;
+    refshBombBonus(gamber: PlayPokerGamberModel, cards: number[]) {
+        let score = this.getCardPointMgr().getBonusFactor(cards);// * this.baseScore;
         if (score > 0) {
-            for (let otherGamber of this.gambers) {
-                if (otherGamber == gamber) {
-                    continue;
-                }
-                this.changeGamberScore(otherGamber, -score);
-                this.changeGamberScore(gamber, score);
-            }
+            gamber.scoreBonus += score;
+            this.net.G_BombBonus(gamber.userId, gamber.scoreBonus);
+            // for (let otherGamber of this.gambers) {
+            //     if (otherGamber == gamber) {
+            //         continue;
+            //     }
+            //     this.changeGamberScore(otherGamber, -score);
+            //     this.changeGamberScore(gamber, score);
+            // }
         }
     }
 

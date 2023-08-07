@@ -75,6 +75,11 @@ export namespace NetDefine {
         C_Hu,
         C_ZiMo,
         C_ChuPai,
+
+        C_TipCard,
+        C_ArrangeCard,
+        C_SortCard,
+        C_RestoreCard,
     }
 
     export enum WS_Resp {
@@ -146,6 +151,7 @@ export namespace NetDefine {
         G_Eliminate,
         G_Special,
         G_Combine,
+        G_OptionalCard,
         G_ShowRaise,
         G_CompareSelect,
 
@@ -161,6 +167,10 @@ export namespace NetDefine {
         G_FriendCard,
         G_Friend,
         G_SwapSeat,
+        G_FoldPointCard,
+        G_TipCard,
+        G_ArrangeCard,
+        G_BombBonus,
     }
 
     export enum HTTP_Get {

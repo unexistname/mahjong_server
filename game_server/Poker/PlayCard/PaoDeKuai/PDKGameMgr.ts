@@ -12,7 +12,6 @@ import PDKCardPointMgr from "./PDKCardPointMgr";
 
 export default class PDKGameMgr extends PlayPokerGameMgr {
 
-    lastPlayGamber: GamberModel | null;
     folds: number[] = [];
     sortCard: boolean = true;
 

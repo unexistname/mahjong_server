@@ -30,6 +30,61 @@ export default class GameUtil {
         arr[index] = arr[anotherIndex];
         arr[anotherIndex] = tmp;
     }
+
+    static choose(list: any[], m: number) {
+        if (list.length < m || m <= 0) {
+            return [];
+        } else if (m == 1) {
+            return this.oneUnionList([], list);
+        } else if (list.length == m) {
+            return [list];
+        }
+        let firstData = list[0];
+        let nextList = list.slice(1);
+        let res1 = this.oneUnionMulti([firstData], this.choose(nextList, m - 1));
+        let res2: any[] = this.choose(nextList, m);
+        return this.mergeList(res1, res2);
+    }
+
+    static oneUnionMulti(listA: any[], listB: any[][]) {
+        if (listA.length <= 0) {
+            return listB;
+        }
+        let res = [];
+        for (let list of listB) {
+            res.push(listA.concat(list));
+        }
+        return res;
+    }
+
+    static oneUnionList(listA: any[], listB: any[]) {
+        let res = [];
+        for (let data of listB) {
+            res.push(listA.concat([data]));
+        }
+        return res;
+    }
+
+    static listUnionMulti(listA: any[], listB: any[]) {
+        let res = [];
+        for (let data of listB) {
+            for (let list of listA) {
+                res.push(list.concat([data]));
+            }
+        }
+        return res;
+    }
+
+    static subList(listA: any[], listB: any[]) {
+        let res = this.deepClone(listA);
+        for (let data of listB) {
+            let index = res.indexOf(data);
+            if (index >= 0) {
+                res.splice(index, 1);
+            }
+        }
+        return res;
+    }
     
     static random(n: number, m: number = 0) {
         let min, max;
@@ -43,6 +98,16 @@ export default class GameUtil {
         let range = max - min;
         let ranValue = min + Math.round(Math.random() * range);
         return ranValue;
+    }
+
+    static unionList(listA: any[], listB: any[]) {
+        let res: any[] = [];
+        for (let data of listA) {
+            if (listB.indexOf(data) >= 0) {
+                res.push(data);
+            }
+        }
+        return res;
     }
 
     static getRandomNumbers(len: number) {

@@ -2,7 +2,6 @@ import GameUtil from "../../../../../utils/GameUtil";
 import PokerCardPointMgr from "../../../Base/PokerCardPointMgr";
 
 
-
 const SPECIAL_CARD_TYPE = {
     SUPREME_DRAGON: 33,  // 至尊清龙
     DRAGON: 32,          // 一条龙
@@ -29,6 +28,7 @@ const COMMON_CARD_TYPE = {
     LEOPARD: 12,        // 豹子
     TWO_PAIR: 11,       // 两对
     ONE_PAIR: 10,       // 一对
+    NONE: 0,
 };
 
 export default class SSSCardPointMgr extends PokerCardPointMgr {
@@ -543,6 +543,7 @@ export default class SSSCardPointMgr extends PokerCardPointMgr {
                     }
                 });
             }
+            cards = [cards.slice(0, 3), cards.slice(3, 8), cards.slice(8)];
         }
 
         return cards;
@@ -658,15 +659,14 @@ export default class SSSCardPointMgr extends PokerCardPointMgr {
     static getPairCardPoint(cards: number[]) {
         if (!cards) return 0;
 
-        var amount = this.parseCardPointAmountTable(cards);
-
-        var point = 0;
-        for (var i = 1; i <= 4; ++i) {
-            for (var j = 2; j <= 14; ++j) {
-                if (!amount[i]) continue;
-                if (amount[i].indexOf(j) < 0) continue;
-                for (var k = 0; k < i; ++k) {
-                    point = point * 20 + i;
+        let amount = this.parseCardPointAmountTable(cards);
+        let point = 0;
+        for (var i = 4; i > 0; --i) {
+            if (!amount[i]) continue;
+            amount[i].sort((a, b) => b - a);
+            for (let j of amount[i]) {
+                for (let k = 0; k < i; ++k) {
+                    point = point * 20 + j;
                 }
             }
         }
@@ -720,7 +720,7 @@ export default class SSSCardPointMgr extends PokerCardPointMgr {
         } else if (this.isCommonOnePair(cards)) {
             return COMMON_CARD_TYPE.ONE_PAIR;
         } else {
-            return this.getMixCardPoint(cards);
+            return COMMON_CARD_TYPE.NONE;
         }
     }
 
@@ -752,18 +752,286 @@ export default class SSSCardPointMgr extends PokerCardPointMgr {
     // 是否倒水
     static isPourWater(cards: number[][]) {
         var lastValue = 0;
-        let values = [];
         for (var i = 0; i < cards.length; ++i) {
             var value = this.getCommonSpecialValue(cards[i]);
             if (i == 0) {
                 value = (value % 10000000) * 400 + Math.floor(value / 10000000) * 10000000;
             }
-            values.push(value);
             if (value < lastValue) {
                 return true;
             }
             lastValue = value;
         }
         return false;
+    }
+
+    static findAllStraight(cards: number[], len: number) {
+        let dict = this.parseCardPointTable(cards);
+        let head = null, tail = null;
+        let res = [];
+        for (let i = 2; i <= 14; ++i) {
+            if (dict[i]) {
+                if (head == null) {
+                    head = i;
+                }
+                tail = i;
+                if (tail - head + 1 >= len) {
+                    res.push({begin: tail - len + 1, end: tail});
+                }
+            } else {
+                head = tail = null;
+            }
+        }
+        return res;
+    }
+
+    static findSameDecorStraight(cards: number[], len: number) {
+        let straights = this.findAllStraight(cards, len);
+        let dict = this.parseCardPointDecorTable(cards);
+        let res = [];
+        for (let straight of straights) {
+            let begin = straight.begin;
+            let end = straight.end;
+            let decors = dict[end];
+            for (let i = begin; i < end; ++i) {
+                decors = GameUtil.unionList(decors, dict[i]);
+            }
+            for (let decor of decors) {
+                let subRes = [];
+                for (let point = begin; point <= end; ++point) {
+                    let pokerId = this.changePointToPoker(point, decor);
+                    subRes.push(pokerId);
+                }
+                res.push(subRes);
+            }
+        }
+        return res;
+    }
+
+    static findBomb(cards: number[], len: number) {
+        if (len < 4) {
+            return [];
+        }
+        let res = [];
+        let dict = this.parseCardPointTable(cards);
+        for (let point in dict) {
+            if (dict[point] >= 4) {
+                let subRes = this.findCards(cards, [Number(point)], 4);
+                res.push(subRes);
+            }
+        }
+        return res;
+    }
+
+    static findGourd(cards: number[], len: number) {
+        if (len < 5) {
+            return [];
+        }
+        let res = [];
+        let amount = this.parseCardPointAmountTable(cards);
+        if (amount[3]) {
+            if (amount[2]) {
+                for (let point3 of amount[3]) {
+                    for (let point2 of amount[2]) {
+                        let three = this.findCards(cards, [point3], 3);
+                        let pair = this.findCards(cards, [point2], 2);
+                        if (three && pair) {
+                            res.push(three.concat(pair));
+                        }
+                    }
+                }
+            }
+            for (let point3 of amount[3]) {
+                for (let point2 of amount[3]) {
+                    if (point2 == point3) {
+                        continue;
+                    }
+                    let three = this.findCards(cards, [point3], 3);
+                    let pair = this.findCards(cards, [point2], 3);
+                    if (three && pair) {
+                        let list = GameUtil.oneUnionMulti(three, GameUtil.choose(pair, 2));
+                        res = GameUtil.mergeList(res, list);
+                    }
+                }
+            }
+        }
+        return res;
+    }
+
+    static findSameDecor(cards: number[], len: number) {
+        let res = [];
+        let dict = this.parseCardDecorPokerTable(cards);
+        for (let decor = 1; decor <= 4; ++decor) {
+            if (dict[decor] && dict[decor].length >= len) {
+                res = GameUtil.mergeList(res, GameUtil.choose(dict[decor], len));
+            }
+        }
+        return res;
+    }
+
+    static findStraight(cards: number[], len: number) {
+        let straights = this.findAllStraight(cards, len);
+        let dict = this.parseCardPointPokerTable(cards);
+        let res = [];
+        for (let straight of straights) {
+            let begin = straight.begin;
+            let end = straight.end;
+            let subRes = [dict[end]];
+            for (let i = begin; i < end; ++i) {
+                subRes = GameUtil.listUnionMulti(subRes, dict[i]);
+            }
+            res = GameUtil.mergeList(res, subRes);
+        }
+        return res;
+    }
+
+    static findLeopard(cards: number[], len: number) {
+        let amount = this.parseCardPointAmountTable(cards);
+        let res = [];
+        if (amount[3]) {
+            for (let point of amount[3]) {
+                let three = this.findCards(cards, [point], 3);
+                res.push(three);
+            }
+        }
+        return res;
+    }
+
+    static findTwoPair(cards: number[], len: number) {
+        if (len < 4) {
+            return [];
+        }
+        let amount = this.parseCardPointAmountTable(cards);
+        let points: number[] = [];
+        for (let i = 2; i <= 3; ++i) {
+            if (amount[i]) {
+                points = GameUtil.mergeList(points, amount[i]);
+            }
+        }
+        if (points.length >= 2) {
+            let pairs = [];
+            for (let point of points) {
+                pairs.push(this.findCards(cards, [point], 2));
+            }
+            let res = GameUtil.choose(pairs, 2);
+            for (let i = 0; i < res.length; ++i) {
+                res[i] = GameUtil.mergeList(res[i][0], res[i][1]);
+            }
+            return res;
+        }
+        return [];
+    }
+
+    static findOnePair(cards: number[], len: number) {
+        if (len < 4) {
+            return [];
+        }
+        let amount = this.parseCardPointAmountTable(cards);
+        let points: number[] = [];
+        for (let i = 2; i <= 3; ++i) {
+            if (amount[i]) {
+                points = GameUtil.mergeList(points, amount[i]);
+            }
+        }
+        let pairs = [];
+        for (let point of points) {
+            pairs.push(this.findCards(cards, [point], 2));
+        }
+        return pairs;
+    }
+
+    static findCardsByType(cards: number[], type: number, len: number) {
+        switch (type) {
+            case COMMON_CARD_TYPE.SAME_DECOR_STRAIGHT:
+                return this.findSameDecorStraight(cards, len);
+            case COMMON_CARD_TYPE.BOMB:
+                return this.findBomb(cards, len);
+            case COMMON_CARD_TYPE.GOURD:
+                return this.findGourd(cards, len);
+            case COMMON_CARD_TYPE.SAME_DECOR:
+                return this.findSameDecor(cards, len);
+            case COMMON_CARD_TYPE.STRAIGHT:
+                return this.findStraight(cards, len);
+            case COMMON_CARD_TYPE.LEOPARD:
+                return this.findLeopard(cards, len);
+            case COMMON_CARD_TYPE.TWO_PAIR:
+                return this.findTwoPair(cards, len);
+            case COMMON_CARD_TYPE.ONE_PAIR:
+                return this.findOnePair(cards, len);
+            case 0:
+                return [[]];
+            default:
+                return [];
+        }
+    }
+
+    static getTipCard(holds: number[]) {
+        let res = [];
+        let specialType = this.getSpecialCardType(holds);
+        if (specialType) {
+            let data = {
+                special: specialType,
+                combineCards: this.getSortSpecialCard(holds, specialType),
+            }
+            res.push(data);
+        }
+        for (let i = 17; i >= 10; --i) {
+            let tails = this.findCardsByType(holds, i, 5);
+            for (let tail of tails) {
+                let excludeTail = GameUtil.subList(holds, tail);
+                for (let j = i; j >= 10; --j) {
+                    let middles = this.findCardsByType(excludeTail, j, 5);
+                    for (let middle of middles) {
+                        if (i == j && this.getCommonSpecialValue(tail) < this.getCommonSpecialValue(middle)) {
+                            continue;
+                        }
+                        let excludeMiddle = GameUtil.subList(excludeTail, middle);
+                        for (let k = j; k >= 0; k == 10 ? k = 0 : --k) {
+                            let heads = this.findCardsByType(excludeMiddle, k, 3);
+                            for (let head of heads) {
+                                if (j == k && this.getCommonSpecialValue(middle) < this.getCommonSpecialValue(head)) {
+                                    continue;
+                                }
+                                let left = GameUtil.subList(excludeMiddle, head);
+                                let _tail = GameUtil.deepClone(tail);
+                                let _middle = GameUtil.deepClone(middle);
+                                if (_tail.length < 5) {
+                                    while (_tail.length < 5) {
+                                        _tail.push(left.pop());
+                                    }
+                                    if (this.getCommonCardType(_tail) > i) {
+                                        continue;
+                                    }
+                                }
+                                if (_middle.length < 5) {
+                                    while (_middle.length < 5) {
+                                        _middle.push(left.pop());
+                                    }
+                                    if (this.getCommonCardType(_middle) > j) {
+                                        continue;
+                                    }
+                                }
+                                if (head.length < 3) {
+                                    while (head.length < 3) {
+                                        head.push(left.pop());
+                                    }
+                                    if (this.getCommonCardType(head) > k) {
+                                        continue;
+                                    }
+                                }
+                                let data = {
+                                    head: k,
+                                    middle: j,
+                                    tail: i,
+                                    combineCards: [head, _middle, _tail]
+                                }
+                                res.push(data);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return res;
     }
 }

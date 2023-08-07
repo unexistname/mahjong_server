@@ -13,4 +13,8 @@ export default class SSSNet extends GameNet {
         let data = { userId: userId, combineCards: combineCards };
         NetUtil.sendMsg(userId, NetDefine.WS_Resp.G_Combine, data);
     }
+
+    G_OptionalCard(userId: string, data: any) {
+        NetUtil.sendMsg(userId, NetDefine.WS_Resp.G_OptionalCard, data);
+    }
 }

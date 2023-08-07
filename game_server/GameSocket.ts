@@ -20,6 +20,8 @@ import SSSGamberModel from "./Poker/CompareCard/Other/ShiSanShui/SSSGamberModel"
 import SSSGameMgr from "./Poker/CompareCard/Other/ShiSanShui/SSSGameMgr";
 import ZJHGamberModel from "./Poker/CompareCard/Turn/ZhaJinHua/ZJHGamberModel";
 import ZJHGameMgr from "./Poker/CompareCard/Turn/ZhaJinHua/ZJHGameMgr";
+import PlayPokerGamberModel from "./Poker/PlayCard/Base/PlayPokerGamberModel";
+import PlayPokerGameMgr from "./Poker/PlayCard/Base/PlayPokerGameMgr";
 
 
 export default class GameSocket extends BaseSocket {
@@ -270,11 +272,31 @@ export default class GameSocket extends BaseSocket {
 
     static C_PlayCard(ws: any, msg: any) {
         return this.doOperate(ws, msg, (game: GameMgr, gamber: GamberModel) => {
-            if (game instanceof FDDZGameMgr) {
-                return (game as FDDZGameMgr).C_PlayCard(gamber, msg.cards);
-            } else {
-                return (game as PDKGameMgr).C_PlayCard(gamber, msg.cards);
-            }
+            return (game as PlayPokerGameMgr).C_PlayCard(<PlayPokerGamberModel>gamber, msg.cards);
+        });
+    }
+
+    static C_SortCard(ws: any, msg: any) {
+        return this.doOperate(ws, msg, (game: GameMgr, gamber: GamberModel) => {
+            return (game as PlayPokerGameMgr).C_SortCard(<PlayPokerGamberModel>gamber);
+        });
+    }
+
+    static C_RestoreCard(ws: any, msg: any) {
+        return this.doOperate(ws, msg, (game: GameMgr, gamber: GamberModel) => {
+            return (game as PlayPokerGameMgr).C_RestoreCard(<PlayPokerGamberModel>gamber);
+        });
+    }
+
+    static C_TipCard(ws: any, msg: any) {
+        return this.doOperate(ws, msg, (game: GameMgr, gamber: GamberModel) => {
+            return (game as PlayPokerGameMgr).C_TipCard(<PlayPokerGamberModel>gamber, msg.cards);
+        });
+    }
+
+    static C_ArrangeCard(ws: any, msg: any) {
+        return this.doOperate(ws, msg, (game: GameMgr, gamber: GamberModel) => {
+            return (game as PlayPokerGameMgr).C_ArrangeCard(<PlayPokerGamberModel>gamber, msg.cards);
         });
     }
 
