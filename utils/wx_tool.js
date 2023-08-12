@@ -15,7 +15,7 @@ var wxInfo = {
     mchid:"1638283123",         // 商户号
     serial_no: "771AD580CEF1C675F7CC0271D2C9F56D8A555820",  // 商户证书序列号
     certificates: {},   // 平台证书列表{平台证书序列号：微信返回的证书数据}
-    notify_url: "https://106.55.237.13/pay_result",
+    notify_url: "https://www.ningdemajiang.cn/pay_result",
     order_url: "https://api.mch.weixin.qq.com/v3/pay/transactions/app",
     certificate_url: "https://api.mch.weixin.qq.com/v3/certificates",
 };

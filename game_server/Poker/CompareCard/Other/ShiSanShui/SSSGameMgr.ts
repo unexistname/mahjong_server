@@ -14,7 +14,6 @@ export default class SSSGameMgr extends GameMgr {
 
     net: SSSNet;
     gambers: SSSGamberModel[];
-    isTurnGame: boolean = false;
 
     StateOver_idle() {
         this.updateGameState(GameConst.GameState.DRAW_CARD);

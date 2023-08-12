@@ -8,8 +8,8 @@ function download() {
     console.log('是否是iOS：'+isiOS);
 
     if (isiOS) {
-        window.location.href = "itms-services://?action=download-manifest&url=https://ningdemajiang.cn/app/majiang.plist";
+        window.location.href = "itms-services://?action=download-manifest&url=https://www.ningdemajiang.cn/app/majiang.plist";
     } else {
-        window.location.href = "http://106.55.237.13:8899/app/majiang.apk";
+        window.location.href = "https://www.ningdemajiang.cn/app/majiang.apk";
     }
 }

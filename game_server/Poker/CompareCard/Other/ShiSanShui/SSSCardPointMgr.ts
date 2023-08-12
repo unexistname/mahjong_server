@@ -876,7 +876,7 @@ export default class SSSCardPointMgr extends PokerCardPointMgr {
         for (let straight of straights) {
             let begin = straight.begin;
             let end = straight.end;
-            let subRes = [dict[end]];
+            let subRes = GameUtil.oneUnionList([], dict[end]);
             for (let i = begin; i < end; ++i) {
                 subRes = GameUtil.listUnionMulti(subRes, dict[i]);
             }
@@ -1019,6 +1019,9 @@ export default class SSSCardPointMgr extends PokerCardPointMgr {
                                         continue;
                                     }
                                 }
+                                this.sortCardByPoint(head);
+                                this.sortCardByPoint(_middle);
+                                this.sortCardByPoint(_tail);
                                 let data = {
                                     head: k,
                                     middle: j,

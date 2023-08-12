@@ -33,7 +33,6 @@ export default class GameMgr {
     stateTime: number;
     timerCB: Function | null;
     forceOver: boolean;
-    isTurnGame: boolean = true;
     
     get waiveWhenTimeout() {
         return this.roomConf.getValue("超时弃牌");
@@ -511,9 +510,7 @@ export default class GameMgr {
 
     reconnect(userId: string) {
         let gamber = this.getGamberByUserId(userId);
-        // if (gamber == null) {
-        //     return ErrorCode.UNKOWN_GAMBER;
-        // }
+        this.updateGameState(this.gameState);
         for (let state of this.getAllState()) {
             LogUtil.debug("开始重连", userId, state)
             if (this.gameState == state) {
@@ -609,10 +606,6 @@ export default class GameMgr {
     reconnectOnBetting(userId: string, gamber?: GamberModel) {
         for (let record of this.recordMgr.operateRecords) {
             this.net.G_DoOperate(record.userId, record.operate, record.value, userId);
-        }
-        if (this.isTurnGame) {
-            let op = this.getOptionalOperate(this.turnGamber);
-            this.net.G_TurnBetting(this.turnGamber.userId, op, userId);
         }
     }
 

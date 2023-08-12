@@ -21,12 +21,7 @@ export default class PDKGameMgr extends PlayPokerGameMgr {
     }
 
     setGameInitData(data: any) {
-        for (let gamber of this.gambers) {
-            if (gamber.userId == data.winnerId) {
-                this.banker = gamber;
-                return;
-            }
-        }
+        this.winnerId = data.winnerId;        
     }
 
     StateOver_idle(...args: any): void {
@@ -35,6 +30,14 @@ export default class PDKGameMgr extends PlayPokerGameMgr {
     }
 
     StateOver_drawCard(...args: any): void {
+        if (this.winnerId) {
+            for (let gamber of this.gambers) {
+                if (gamber.userId == this.winnerId) {
+                    this.banker = gamber;
+                    return;
+                }
+            }
+        }
         if (this.banker == null) {
             let bankerCard = PokerCardPointMgr.getCard(PokerCardDecor.SPADE, 3);
             for (let gamber of this.gambers) {
@@ -43,6 +46,10 @@ export default class PDKGameMgr extends PlayPokerGameMgr {
                     break;
                 }
             }
+        }
+        if (this.banker == null) {
+            let index = GameUtil.random(this.gamberNum - 1);
+            this.banker = this.gambers[index];
         }
 
         this.net.G_DecideBanker(this.banker.userId, []);

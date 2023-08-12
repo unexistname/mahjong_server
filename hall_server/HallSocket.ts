@@ -38,7 +38,7 @@ export default class HallSocket extends BaseSocket {
         let rooms = AllRoomMgr.ins.getAllPublicRoom();
         AllUserMgr.ins.enterHall(ws.userId);
         // TODO: 转为DTO
-        this.send(ws, NetDefine.WS_Resp.G_EnterHall, rooms);
+        // this.send(ws, NetDefine.WS_Resp.G_EnterHall, rooms);
     }
 
     static C_LeaveHall(ws: any, msg: any) {

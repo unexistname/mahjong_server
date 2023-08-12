@@ -5,6 +5,7 @@ import GamberModel from "../../../Game/GamberModel";
 import GameMgr from "../../../Game/GameMgr";
 import { GameConst } from "../../../GameConst";
 import PlayPokerCardPointMgr, { CARD_TYPE } from "./PlayPokerCardPointMgr";
+import { PlayPokerFoldType } from "./PlayPokerFoldType";
 import PlayPokerGamberModel from "./PlayPokerGamberModel";
 import PlayPokerNet from "./PlayPokerNet";
 import PlayPokerOperate from "./PlayPokerOperate";
@@ -46,6 +47,11 @@ export default class PlayPokerGameMgr extends GameMgr {
     State_betting(gamber?: PlayPokerGamberModel | undefined): void {
         this.turnGamber = gamber || <PlayPokerGamberModel>this.getNextGamber(this.turnGamber);
         if (this.lastPlayGamber == this.turnGamber) {
+            for (let gamber of this.gambers) {
+                gamber.folds = [];
+                gamber.foldType = PlayPokerFoldType.NONE
+                this.net.G_PokerFold(gamber.userId, gamber.foldType);
+            }
             if (this.isEatPointMode) {
                 setTimeout(() => {
                     if (this.lastPlayGamber == null) {
@@ -120,6 +126,8 @@ export default class PlayPokerGameMgr extends GameMgr {
         }
         gamber.discards(cards);
         gamber.cardType = cardType;
+        gamber.folds = cards;
+        gamber.foldType = PlayPokerFoldType.PLAY;
         this.folds = cards;
         this.lastPlayGamber = gamber;
         if (this.isEatPointMode) {
@@ -127,7 +135,7 @@ export default class PlayPokerGameMgr extends GameMgr {
             this.foldPointCards = GameUtil.mergeList(this.foldPointCards, this.getCardPointMgr().getFoldPointCard(this.folds));
             this.net.G_FoldPointCard(this.fundPool, this.foldPointCards);
         }
-        this.net.G_Fold(gamber.userId, this.folds, cardType);
+        this.net.G_PokerFold(gamber.userId, gamber.foldType, this.folds, cardType);
         this.notifyOperate(gamber, PlayPokerOperate.PLAY, cards);
         this.G_InitHolds();
         this.nextState();
@@ -180,7 +188,7 @@ export default class PlayPokerGameMgr extends GameMgr {
 
     @ConditionFilter(ErrorCode.GAME_STATE_ERROR, GameConst.GameState.BETTING)
     C_SortCard(gamber: PlayPokerGamberModel) {
-        this.getCardPointMgr().sortCard(gamber.holds);
+        gamber.holds = this.getCardPointMgr().sortCard(gamber.holds);
         this.G_InitHolds(gamber.userId);
     }
 
@@ -196,7 +204,9 @@ export default class PlayPokerGameMgr extends GameMgr {
     @ConditionFilter(ErrorCode.GAME_STATE_ERROR, GameConst.GameState.BETTING)
     @ConditionFilter(ErrorCode.NOT_YOUR_TURN)
     @ConditionFilter(ErrorCode.UNEXCEPT_OPERATE, PlayPokerOperate.WAIVE)
-    C_Waive(gamber: GamberModel) {
+    C_Waive(gamber: PlayPokerGamberModel) {
+        gamber.foldType = PlayPokerFoldType.WAIVE;
+        this.net.G_PokerFold(gamber.userId, gamber.foldType);
         this.notifyOperate(gamber, PlayPokerOperate.WAIVE);
         this.nextState();
     }
@@ -214,6 +224,15 @@ export default class PlayPokerGameMgr extends GameMgr {
             }
             this.net.G_FoldPointCard(this.fundPool, this.foldPointCards, userId);
         }
+        for (let gamber of this.gambers) {
+            this.net.G_PokerFold(gamber.userId, gamber.foldType, gamber.folds, gamber.cardType, userId);
+        }
+    }
+
+    reconnectOnBetting(userId: string, gamber?: GamberModel | undefined): void {
+        super.reconnectOnBetting(userId, gamber);
+        let op = this.getOptionalOperate(this.turnGamber);
+        this.net.G_TurnBetting(this.turnGamber.userId, op, userId);
     }
 
     getOptionalOperate(gamber: GamberModel) {

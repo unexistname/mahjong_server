@@ -14,6 +14,10 @@ export enum CARD_TYPE {
     THREE_BELT_PAIR,
     THREE_STRAIGHT_BELT_ONE,
     THREE_STRAIGHT_BELT_PAIR,
+    FOUR_BELT_TWO,
+    FOUR_BELT_TWO_PAIR,
+    FOUR_STRAIGHT_BELT_MULTI_SINGLE,
+    FOUR_STRAIGHT_BELT_MULTI_PAIR,
     FOUR_BELT_PAIR,
     FOUR_STRAIGHT_BELT_PAIR,
     BOMB,
@@ -82,8 +86,10 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
             CARD_TYPE.THREE_BELT_PAIR,
             CARD_TYPE.THREE_STRAIGHT_BELT_ONE,
             CARD_TYPE.THREE_STRAIGHT_BELT_PAIR,
-            CARD_TYPE.FOUR_BELT_PAIR,
-            CARD_TYPE.FOUR_STRAIGHT_BELT_PAIR,
+            CARD_TYPE.FOUR_BELT_TWO,
+            CARD_TYPE.FOUR_BELT_TWO_PAIR,
+            // CARD_TYPE.FOUR_BELT_PAIR,
+            // CARD_TYPE.FOUR_STRAIGHT_BELT_PAIR,
         ]
     }
 
@@ -115,6 +121,10 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
                 return this.isFourBeltPair(cards);
             case CARD_TYPE.FOUR_STRAIGHT_BELT_PAIR:
                 return this.isFourStraightBeltPair(cards);
+            case CARD_TYPE.FOUR_BELT_TWO:
+                return this.isFourBeltTwo(cards);
+            case CARD_TYPE.FOUR_BELT_TWO_PAIR:
+                return this.isFourBeltTwoPair(cards);
             default:
                 return false;
         }
@@ -253,6 +263,22 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
         return cnt[1] && cnt[3];
     }
 
+    static isFourBeltTwo(cards: number[]) {
+        if (cards.length != 6) {
+            return false;
+        }
+        let cnt = this.getSameCardValueCnt(cards);
+        if (cnt[4]) {
+            if (cnt[1] && cnt[1] >= 2) {
+                return true;
+            }
+            if (cnt[2]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     static isThreeBeltPair(cards: number[]) {
         if (cards.length != 5) {
             return false;
@@ -342,6 +368,14 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
         return cnt[2] && cnt[4];
     }
 
+    static isFourBeltTwoPair(cards: number[]) {
+        if (cards.length != 8) {
+            return false;
+        }
+        let cnt = this.getSameCardValueCnt(cards);
+        return cnt[2] && cnt[4] && cnt[2] >= 2;
+    }
+
     static isBetter(cards1: number[], cards2: number[]) {
         let cardType1 = this.getCardType(cards1);
         let cardType2 = this.getCardType(cards2);
@@ -371,7 +405,9 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
                 let point2 = amount2[3][0];
                 return point1 < point2;
             } else if (cardType1 == CARD_TYPE.FOUR_BELT_PAIR
-                || cardType1 == CARD_TYPE.FOUR_STRAIGHT_BELT_PAIR) {
+                || cardType1 == CARD_TYPE.FOUR_STRAIGHT_BELT_PAIR
+                || cardType1 == CARD_TYPE.FOUR_BELT_TWO
+                || cardType1 == CARD_TYPE.FOUR_BELT_TWO_PAIR) {
                 let amount1 = this.parseCardPointAmountTable(cards1);
                 let amount2 = this.parseCardPointAmountTable(cards2);
                 amount1[4].sort();
@@ -524,6 +560,19 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
         }
     }
 
+    static getBeltPoints(canBeltPoints: number[], beltNum: number, needSort: boolean) {
+        let points = [];
+        if (canBeltPoints.length <= beltNum) {
+            points = canBeltPoints;
+        } else {
+            needSort && canBeltPoints.sort();
+            for (let i = 0; i < beltNum; ++i) {
+                points.push(canBeltPoints[i]);
+            }
+        }
+        return points;
+    }
+
     static findBetterFourBeltPair(folds: number[], holds: number[]) {
         if (holds.length < 6) {
             return;
@@ -539,6 +588,73 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
                     for (let point3 of belt) {
                         let pair = this.findCards(holds, [point3], 2);
                         return four && pair && four.concat(pair);
+                    }
+                }
+            }
+        }
+    }
+
+    static findBetterFourBeltTwo(folds: number[], holds: number[]) {
+        if (holds.length < 6) {
+            return;
+        }        
+        let amount = this.parseCardPointAmountTable(folds);
+        let point = amount[4][0];
+        amount = this.parseCardPointAmountTable(holds);
+        if (amount[4] && (amount[1] || amount[2] || amount[3])) {
+            for (let point2 of amount[4]) {
+                if (point2 > point) {
+                    let four = this.findCards(holds, [point2], 3);
+                    if (amount[1] && amount[1].length >= 2) {
+                        amount[1].sort();
+                        let two = this.findCards(holds, [amount[1][0], amount[1][1]], 1);
+                        return four && two && four.concat(two);
+                    } else {
+                        let belt = amount[2] || amount[3];
+                        belt.sort();
+                        let pair = this.findCards(holds, [belt[0]], 2);
+                        return four && pair && four.concat(pair);
+                    }
+                }
+            }
+        }
+    }
+
+    static findBetterFourBeltTwoPair(folds: number[], holds: number[]) {
+        if (holds.length < 8) {
+            return;
+        }        
+        let amount = this.parseCardPointAmountTable(folds);
+        let point = amount[4][0];
+        amount = this.parseCardPointAmountTable(holds);
+        if (amount[4] && (amount[2] || amount[3])) {
+            for (let point2 of amount[4]) {
+                if (point2 > point) {
+                    let four = this.findCards(holds, [point2], 3);
+
+                    let belt = amount[2] || amount[3];
+                    let points = [];
+                    if (amount[2]) {
+                        amount[2].sort();
+                        for (let point3 of amount[2]) {
+                            points.push(point3);
+                            if (points.length >= 2) {
+                                break;
+                            }
+                        }
+                    }
+                    if (amount[3] && points.length < 2) {
+                        amount[3].sort();
+                        for (let point3 of amount[3]) {
+                            points.push(point3);
+                            if (points.length >= 2) {
+                                break;
+                            }
+                        }
+                    }
+                    if (points.length == 2) {
+                        let twoPair = this.findCards(holds, points, 2);
+                        return four && twoPair && four.concat(twoPair);
                     }
                 }
             }
@@ -745,6 +861,30 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
         return four && pair && GameUtil.mergeList(four, pair);
     }
 
+    static findFourBeltTwo(holds: number[]) {
+        let four = this.findMinLeopard(holds, 4);
+        if (four) {
+            let amount = this.parseCardPointAmountTable(holds);
+            if (amount[1] && amount[1].length >= 2) {
+                amount[1].sort();
+                let twoPair = this.findCards(holds, [amount[1][0], amount[1][1]], 2);
+                return twoPair && GameUtil.mergeList(four, twoPair);
+            }
+        }
+    }
+
+    static findFourBeltTwoPair(holds: number[]) {
+        let four = this.findMinLeopard(holds, 4);
+        if (four) {
+            let amount = this.parseCardPointAmountTable(holds);
+            if (amount[2] && amount[2].length >= 2) {
+                amount[2].sort();
+                let twoPair = this.findCards(holds, [amount[2][0], amount[2][1]], 2);
+                return twoPair && GameUtil.mergeList(four, twoPair);
+            }
+        }
+    }
+
     static findFourStraightBeltPair(holds: number[]) {
         let fourStraight = this.findStraight(holds, 4);
         if (fourStraight) {
@@ -784,6 +924,10 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
                 return this.findFourBeltPair(holds);
             case CARD_TYPE.FOUR_STRAIGHT_BELT_PAIR:
                 return this.findFourStraightBeltPair(holds);
+            case CARD_TYPE.FOUR_BELT_TWO:
+                return this.findFourBeltTwo(holds);
+            case CARD_TYPE.FOUR_BELT_TWO_PAIR:
+                return this.findFourBeltTwoPair(holds);
             case CARD_TYPE.BOMB:
                 return this.findBomb(holds);
         }
@@ -854,6 +998,10 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
             res = this.findBetterThreeStraightBeltPair(folds, holds);
         } else if (cardType == CARD_TYPE.FOUR_BELT_PAIR) {
             res = this.findBetterFourBeltPair(folds, holds);
+        } else if (cardType == CARD_TYPE.FOUR_BELT_TWO) {
+            res = this.findBetterFourBeltTwo(folds, holds);
+        } else if (cardType == CARD_TYPE.FOUR_BELT_TWO_PAIR) {
+            res = this.findBetterFourBeltTwoPair(folds, holds);
         } else if (cardType == CARD_TYPE.FOUR_STRAIGHT_BELT_PAIR) {
             res = this.findBetterFourStraightBeltPair(folds, holds);
         } else if (cardType == CARD_TYPE.BOMB) {

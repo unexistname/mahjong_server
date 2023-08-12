@@ -256,4 +256,10 @@ export default class PokerCardPointMgr {
         }
         return true;
     }
+
+    static sortCardByPoint(cards: number[]) {
+        cards.sort((a, b) => {
+            return this.getCardPoint(a) - this.getCardPoint(b);
+        });
+    }
 }

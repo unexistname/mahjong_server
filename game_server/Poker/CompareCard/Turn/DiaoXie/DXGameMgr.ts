@@ -372,13 +372,6 @@ export default class DXGameMgr extends TurnPokerGameMgr {
         this.beltNowCost = this.fundPool;
     }
 
-    // reconnectOnDecideBanker(userId: string): void {
-    //     this.net.G_FundPoolChange(this.fundPool, userId);
-    //     for (let gamber of this.gambers) {
-    //         this.net.G_GamberScoreChange(gamber.userId, 0, gamber.score, gamber.scoreBetting, userId);
-    //     }
-    // }
-
     reconnectOnBetting(userId: string, gamber?: DXGamberModel) {
         if (gamber && this.rubCards[userId]) {
             let cardType = this.getCardType(gamber);

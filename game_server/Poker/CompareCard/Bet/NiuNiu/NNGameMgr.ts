@@ -9,8 +9,6 @@ import NNOperate from "./NNOperate";
 
 export default class NNGameMgr extends GameMgr {
 
-    isTurnGame: boolean = false;
-
     StateOver_idle(...args: any) {
         this.updateGameState(GameConst.GameState.DRAW_CARD);
         this.State_drawCard();

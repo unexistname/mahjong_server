@@ -255,7 +255,7 @@ export default class MJGameMgr extends GameMgr {
         }
     }
 
-    @ConditionFilter(ErrorCode.THIS_IS_YOUR_CARD)
+    // @ConditionFilter(ErrorCode.THIS_IS_YOUR_CARD)
     @ConditionFilter(ErrorCode.UNEXCEPT_OPERATE, MJOperate.CHI)
     @ConditionFilter(ErrorCode.YOU_ALREADY_HU)
     C_Chi(gamber: MJGamberModel, index: number) {
@@ -433,7 +433,7 @@ export default class MJGameMgr extends GameMgr {
     C_Guo(gamber: MJGamberModel) {
         let userId = gamber.userId;
         this.operateTask[userId].clearTask();
-        this.clearAllOptions();
+        this.clearAllOptions(gamber);
         
         if( this.chuPai != -1) {
             if(this.guoshoupeng[ userId ] == null) {

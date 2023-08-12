@@ -29,6 +29,7 @@ import AllRoomMgr from "./AllRoomMgr";
 import RoomConfModel from "./RoomConfModel";
 import RoomUserModel from "./RoomUserModel";
 import RoomNet from "./RoomNet";
+import PlayPokerNet from "../Poker/PlayCard/Base/PlayPokerNet";
 
 
 export default class RoomMgr {
@@ -453,7 +454,7 @@ export default class RoomMgr {
             case GameConst.GameType.SHI_SANG_SHUI:
                 return new SSSGameMgr(this, new SSSNet(this.roomId));
             case GameConst.GameType.PAO_DE_KUAI:
-                return new PDKGameMgr(this, new GameNet(this.roomId));
+                return new PDKGameMgr(this, new PlayPokerNet(this.roomId));
             case GameConst.GameType.QUE_SHENG:
                 return new QSGameMgr(this, new MJNet(this.roomId));
             case GameConst.GameType.SANG_GONG:

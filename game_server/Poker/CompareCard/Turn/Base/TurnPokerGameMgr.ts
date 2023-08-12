@@ -10,7 +10,6 @@ import TurnOperate from "./TurnOperate";
 export default class TurnPokerGameMgr extends GameMgr {
 
     bankerId: string;
-    isTurnGame: boolean = true;
 
     initGame() {
         super.initGame();
@@ -145,13 +144,11 @@ export default class TurnPokerGameMgr extends GameMgr {
         }
     }
 
-    // reconnectOnBetting(userId: string, gamber: GamberModel) {
-    //     this.net.G_FundPoolChange(this.fundPool, userId);
-    //     for (let gamber of this.gambers) {
-    //         this.net.G_GamberScoreChange(gamber.userId, 0, gamber.score, gamber.scoreBetting, userId);
-    //     }
-    //     super.reconnectOnBetting(userId, gamber);
-    // }
+    reconnectOnBetting(userId: string, gamber?: GamberModel) {
+        super.reconnectOnBetting(userId, gamber);
+        let op = this.getOptionalOperate(this.turnGamber);
+        this.net.G_TurnBetting(this.turnGamber.userId, op, userId);
+    }
 
     notifyOperate(gamber: GamberModel, operate: any, data: any = null, clearTimer: boolean = true) {
         clearTimer && this.clearStateTimer();

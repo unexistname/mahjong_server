@@ -171,6 +171,7 @@ export namespace NetDefine {
         G_TipCard,
         G_ArrangeCard,
         G_BombBonus,
+        G_PokerFold,
     }
 
     export enum HTTP_Get {

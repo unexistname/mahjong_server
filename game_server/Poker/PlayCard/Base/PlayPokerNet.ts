@@ -1,5 +1,6 @@
 import { NetDefine } from "../../../../base_net/NetDefine";
 import GameNet from "../../../Game/GameNet";
+import { PlayPokerFoldType } from "./PlayPokerFoldType";
 
 
 export default class PlayPokerNet extends GameNet {
@@ -12,6 +13,11 @@ export default class PlayPokerNet extends GameNet {
     G_FoldPointCard(point: number, cards: number[], syncUserId?: string) {
         let data = { point: point, cards: cards };
         this.send(NetDefine.WS_Resp.G_FoldPointCard, data, syncUserId);
+    }
+
+    G_PokerFold(userId: string, foldType: PlayPokerFoldType, folds?: number[], cardType?: number, syncUserId?: string) {
+        let data = { userId: userId, foldType: foldType, folds: folds, cardType: cardType };
+        this.send(NetDefine.WS_Resp.G_PokerFold, data, syncUserId);
     }
 
     G_TipCard(userId: string, cards: number[]) {
