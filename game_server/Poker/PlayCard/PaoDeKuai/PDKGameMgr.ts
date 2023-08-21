@@ -8,6 +8,7 @@ import PlayPokerGameMgr from "../Base/PlayPokerGameMgr";
 import PlayPokerOperate from "../Base/PlayPokerOperate";
 import PDKCardMgr from "./PDKCardMgr";
 import PDKCardPointMgr from "./PDKCardPointMgr";
+import PDKCardPointMgr2 from "./PDKCardPointMgr2";
 
 
 export default class PDKGameMgr extends PlayPokerGameMgr {
@@ -34,7 +35,7 @@ export default class PDKGameMgr extends PlayPokerGameMgr {
             for (let gamber of this.gambers) {
                 if (gamber.userId == this.winnerId) {
                     this.banker = gamber;
-                    return;
+                    break;
                 }
             }
         }
@@ -117,7 +118,7 @@ export default class PDKGameMgr extends PlayPokerGameMgr {
     }
 
     getCardPointMgr() {
-        return PDKCardPointMgr;
+        return this.gamberNum == 3 ? PDKCardPointMgr : PDKCardPointMgr2;
     }
 
     generateCardMgr(): CardMgr {
@@ -126,5 +127,15 @@ export default class PDKGameMgr extends PlayPokerGameMgr {
 
     getBrightCardNum(): number {
         return this.gamberNum == 4 ? 13 : 16;
+    }
+
+    getAllState() {
+        return [
+            GameConst.GameState.IDLE,
+            GameConst.GameState.DRAW_CARD, 
+            GameConst.GameState.BETTING, 
+            GameConst.GameState.SHOW_CARD, 
+            GameConst.GameState.SETTLE
+        ];
     }
 }

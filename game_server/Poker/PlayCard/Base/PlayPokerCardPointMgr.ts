@@ -86,10 +86,6 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
             CARD_TYPE.THREE_BELT_PAIR,
             CARD_TYPE.THREE_STRAIGHT_BELT_ONE,
             CARD_TYPE.THREE_STRAIGHT_BELT_PAIR,
-            CARD_TYPE.FOUR_BELT_TWO,
-            CARD_TYPE.FOUR_BELT_TWO_PAIR,
-            // CARD_TYPE.FOUR_BELT_PAIR,
-            // CARD_TYPE.FOUR_STRAIGHT_BELT_PAIR,
         ]
     }
 
@@ -426,7 +422,7 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
     static findMultiStraight(min: number, len: number, holds: number[], multi: number) {
         let dict = this.parseCardPointTable(holds);
         let head = null;
-        for (let i = 1 + min; i <= 15 - len + 1; ++i) {
+        for (let i = 1 + min; i < 15; ++i) {
             if (dict[i] && dict[i] >= multi) {
                 if (head == null) {
                     head = i;
@@ -471,6 +467,15 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
                     return this.findCards(holds, [point], 3);
                 }
             }
+        }
+    }
+
+    static findBetterSingleStraight(folds: number[], holds: number[]) {
+        let len = folds.length;
+        let min = this.getCardPoint(folds[0]);
+        let res = this.findMultiStraight(min, len, holds, 1);
+        if (res && res.length > 0) {
+            return res;
         }
     }
 
@@ -631,8 +636,6 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
             for (let point2 of amount[4]) {
                 if (point2 > point) {
                     let four = this.findCards(holds, [point2], 3);
-
-                    let belt = amount[2] || amount[3];
                     let points = [];
                     if (amount[2]) {
                         amount[2].sort();
@@ -984,6 +987,8 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
             res = this.findBetterPair(folds, holds);
         } else if (cardType == CARD_TYPE.THREE) {
             res = this.findBetterThree(folds, holds);
+        } else if (cardType == CARD_TYPE.SINGLE_STRAIGHT) {
+            res = this.findBetterSingleStraight(folds, holds);
         } else if (cardType == CARD_TYPE.PAIR_STRAIGHT) {
             res = this.findBetterPairStraight(folds, holds);
         } else if (cardType == CARD_TYPE.THREE_STRAIGHT) {

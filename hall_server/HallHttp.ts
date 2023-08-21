@@ -36,7 +36,7 @@ export default class HallHttp extends BaseHttp {
         }
         let money = recharge.price * 100;
         let orderCreateTime = Date.now();
-        let description = recharge.desc || "";
+        let description = recharge.seriesDesc || "";
 
         let orderData = {
             userId: msg.userId, 
@@ -53,6 +53,10 @@ export default class HallHttp extends BaseHttp {
                 }
             });
         });
+    }
+
+    static C_UpdateLocation(res: any, msg: any) {
+        
     }
 
     static CB_PayResult(res: any, postData: any, req: any) {

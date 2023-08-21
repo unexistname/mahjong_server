@@ -2,7 +2,6 @@ import NetUtil from "../base_net/NetUtil";
 import { ErrorCode } from "../game_server/ErrorCode";
 import LogUtil from "../utils/LogUtil";
 import { NetDefine } from "../base_net/NetDefine";
-import RoomNet from "../game_server/Room/RoomNet";
 
 const db = require('../utils/db');
 

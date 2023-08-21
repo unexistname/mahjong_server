@@ -103,7 +103,8 @@ export default class PlayPokerGameMgr extends GameMgr {
     @ConditionFilter(ErrorCode.GAME_STATE_ERROR, GameConst.GameState.BETTING)
     @ConditionFilter(ErrorCode.NOT_YOUR_TURN)
     @ConditionFilter(ErrorCode.YOU_DONT_HAVE_CARDS)
-    C_PlayCard(gamber: PlayPokerGamberModel, cards: number[]) {
+    C_PlayCard(gamber: PlayPokerGamberModel, indexs: number[]) {
+        let cards = gamber.getHoldsByIndexs(indexs);
         let cardType = this.getCardPointMgr().getCardType(cards);
         if (cardType == CARD_TYPE.NONE) {
             return ErrorCode.CARD_TYPE_ERROR;
@@ -143,8 +144,9 @@ export default class PlayPokerGameMgr extends GameMgr {
     
     @ConditionFilter(ErrorCode.GAME_STATE_ERROR, GameConst.GameState.BETTING)
     @ConditionFilter(ErrorCode.UNEXCEPT_OPERATE, PlayPokerOperate.TIP)
-    C_TipCard(gamber: GamberModel, cards: number[]) {
+    C_TipCard(gamber: PlayPokerGamberModel, indexs: number[]) {
         let tipCard;
+        let cards = gamber.getHoldsByIndexs(indexs);
         if (this.folds && this.folds.length > 0) {
             if (cards && cards.length > 0 && this.getCardPointMgr().isBetter(this.folds, cards)) {
                 tipCard = this.getCardPointMgr().getTipHold(cards, gamber.holds);
@@ -177,9 +179,11 @@ export default class PlayPokerGameMgr extends GameMgr {
 
     @ConditionFilter(ErrorCode.GAME_STATE_ERROR, GameConst.GameState.BETTING)
     @ConditionFilter(ErrorCode.YOU_DONT_HAVE_CARDS)
-    C_ArrangeCard(gamber: PlayPokerGamberModel, cards: number[]) {
-        for (let card of cards) {
-            let index = gamber.holds.indexOf(card);
+    C_ArrangeCard(gamber: PlayPokerGamberModel, indexs: number[]) {
+        let cards = [];
+        indexs.sort((a, b) => b - a);
+        for (let index of indexs) {
+            cards.push(gamber.holds[index]);
             gamber.holds.splice(index, 1);
         }
         gamber.holds = cards.concat(gamber.holds);

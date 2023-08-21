@@ -104,14 +104,10 @@ conditions[ErrorCode.THIS_IS_YOUR_CARD] = (game: MJGameMgr, gamber: MJGamberMode
     }
 }
 
-conditions[ErrorCode.YOU_DONT_HAVE_CARDS] = (game: GameMgr, gamber: GamberModel, cards: number[]) => {
-    let holds = GameUtil.deepClone(gamber.holds);
-    for (let card of cards) {
-        let index = holds.indexOf(card);
-        if (index < 0) {
+conditions[ErrorCode.YOU_DONT_HAVE_CARDS] = (game: GameMgr, gamber: GamberModel, indexs: number[]) => {
+    for (let index of indexs) {
+        if (index >= gamber.holds.length) {
             return ErrorCode.YOU_DONT_HAVE_CARDS;
-        } else {
-            holds.splice(index, 1);
         }
     }
 }

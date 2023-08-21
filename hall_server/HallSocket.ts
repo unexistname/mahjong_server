@@ -41,6 +41,10 @@ export default class HallSocket extends BaseSocket {
         // this.send(ws, NetDefine.WS_Resp.G_EnterHall, rooms);
     }
 
+    static C_TransferGem(ws: any, msg: any) {
+        return AllUserMgr.ins.C_TransferGem(ws.userId, msg.userId, msg.gemNum);
+    }
+
     static C_LeaveHall(ws: any, msg: any) {
         AllUserMgr.ins.leaveHall(ws.userId);
         this.send(ws, NetDefine.WS_Resp.G_LeaveHall);

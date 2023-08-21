@@ -1,5 +1,4 @@
-import { GameConst } from "../../../GameConst";
-import PlayPokerCardPointMgr from "../Base/PlayPokerCardPointMgr";
+import PlayPokerCardPointMgr, { CARD_TYPE } from "../Base/PlayPokerCardPointMgr";
 
 export default class PDKCardPointMgr extends PlayPokerCardPointMgr {
 
@@ -31,7 +30,7 @@ export default class PDKCardPointMgr extends PlayPokerCardPointMgr {
 
     static isBomb(cards: number[]) {
         if (this.isLeopard(cards)) {
-            if (cards.length == 4) {
+            if (cards.length >= 4) {
                 return true;
             }
             if (cards.length == 3 && this.getCardValue(cards[0]) == 1) {
@@ -39,16 +38,6 @@ export default class PDKCardPointMgr extends PlayPokerCardPointMgr {
             }
         }
         return false;
-    }
-
-    getAllState() {
-        return [
-            GameConst.GameState.IDLE,
-            GameConst.GameState.DRAW_CARD, 
-            GameConst.GameState.BETTING, 
-            GameConst.GameState.SHOW_CARD, 
-            GameConst.GameState.SETTLE
-        ];
     }
 
     static findBomb(holds: number[]) {
@@ -59,6 +48,24 @@ export default class PDKCardPointMgr extends PlayPokerCardPointMgr {
         if (amount[4]) {
             return this.findCards(holds, [amount[4][0]], 4);
         }
+    }
+
+    static getLegalCardTypes() {
+        return [
+            CARD_TYPE.BOMB,
+            CARD_TYPE.SINGLE,
+            CARD_TYPE.PAIR,
+            CARD_TYPE.THREE,
+            CARD_TYPE.SINGLE_STRAIGHT,
+            CARD_TYPE.PAIR_STRAIGHT,
+            CARD_TYPE.THREE_STRAIGHT,
+            CARD_TYPE.THREE_BELT_ONE,
+            CARD_TYPE.THREE_BELT_PAIR,
+            CARD_TYPE.THREE_STRAIGHT_BELT_ONE,
+            CARD_TYPE.THREE_STRAIGHT_BELT_PAIR,
+            CARD_TYPE.FOUR_BELT_TWO,
+            CARD_TYPE.FOUR_BELT_TWO_PAIR,
+        ]
     }
 
 }

@@ -16,4 +16,14 @@ export default class PlayPokerGamberModel extends GamberModel {
         this.scoreBonus = 0;
         this.foldType = PlayPokerFoldType.NONE;
     }
+
+    getHoldsByIndexs(indexs: number[]) {
+        let cards = [];
+        if (indexs) {
+            for (let index of indexs) {
+                cards.push(this.holds[index]);
+            }
+        }
+        return cards;
+    }
 }

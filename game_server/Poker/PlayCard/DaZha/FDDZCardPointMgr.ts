@@ -96,21 +96,33 @@ export default class FDDZCardPointMgr extends PlayPokerCardPointMgr {
     }
 
     static getBonusFactor(cards: number[]) {
-        // 4个纯2
-        if (cards.length == 4 && this.getCardValue(cards[0]) == 2 && this.isLeopard(cards)) {
-            return 1;
-        }
-        let value = this.getBombValue(cards) / 1000;
-        if (value >= 5) {
-            if (this.isLeopard(cards)) {
-                return 1 << (value - 5);
-            } else {
+        let bombLen = cards.length;
+        if (this.isLeopard(cards)) {
+            if (this.isGhost(cards[0])) {
+                if (bombLen >= 3) {
+                    return 1 << (bombLen - 2);
+                }
+            } else if (this.getCardPoint(cards[0]) == 15) {
+                if (bombLen >= 4) {
+                    return 1 << (bombLen - 4);
+                }
+            } else if (bombLen >= 5) {
+                return 1 << (bombLen - 5);
+            }
+        } else {
+            if (bombLen >= 5) {
                 let dict = this.parseCardPointTable(cards);
                 for (let point in dict) {
                     let amount = dict[point];
-                    if (amount && Number(point) != 16) {
-                        if (amount >= 5) {
-                            return 1 << (amount - 5);
+                    if (Number(point) < 16) {
+                        if (Number(point) == 15) {
+                            if (amount >= 4) {
+                                return 1 << (amount - 4);
+                            }
+                        } else {
+                            if (amount >= 5) {
+                                return 1 << (amount - 5);
+                            }
                         }
                     }
                 }

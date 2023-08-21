@@ -75,6 +75,13 @@ export default class SSSGameMgr extends GameMgr {
         }
     }
 
+    StateOver_showCard(...args: any) {
+        this.beginTimer(GameConst.GameTime.SSS_SHOW_CARD, () => {
+            this.updateGameState(GameConst.GameState.SETTLE);
+            this.State_settle(...args);
+        });
+    }
+
     settle() {
         let baseScore = this.baseScore;
         var kill: number[][] = [];

@@ -31,13 +31,14 @@ export namespace GameConst {
 
     export class GameTime {
         static COMPARE = 2;
-        static DRAW_CARD = 2;
+        static DRAW_CARD = 1;
         static ROB_BANKER = 10;
-        static DECIDE_BANKER = 5;
+        static DECIDE_BANKER = 1;
         static BETTING = 15;
-        static SHOW_CARD = 5;
+        static SHOW_CARD = 1;
         static MJ_OPERATE = 10;
         static DISSOLVE_VOTE = 30;
+        static SSS_SHOW_CARD = 5;
     }
 
     export class RoomTime {

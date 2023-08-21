@@ -190,6 +190,8 @@ export namespace NetDefine {
         C_Recharge = "/recharge_id",
         C_ShowRecharge = "/getAllSeries",
         C_Pay = "/pay",
+
+        C_UpdateLocation = "/update_location",
     }
 
     export enum HTTP_Post {
