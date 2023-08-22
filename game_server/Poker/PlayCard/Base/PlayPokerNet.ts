@@ -20,8 +20,8 @@ export default class PlayPokerNet extends GameNet {
         this.send(NetDefine.WS_Resp.G_PokerFold, data, syncUserId);
     }
 
-    G_TipCard(userId: string, cards: number[]) {
-        let data = { userId: userId, cards: cards };
+    G_TipCard(userId: string, cards: number[], tipIndexs: number[]) {
+        let data = { userId: userId, cards: cards, tipIndexs: tipIndexs };
         this.send(NetDefine.WS_Resp.G_TipCard, data);
     }
 

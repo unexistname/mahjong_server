@@ -154,7 +154,6 @@ export default class PlayPokerGameMgr extends GameMgr {
             if (!tipCard) {
                 tipCard = this.getCardPointMgr().getTipHold(this.folds, gamber.holds) || [];
             }
-            this.net.G_TipCard(gamber.userId, tipCard);
         } else {
             let legalTypes = this.getCardPointMgr().getLegalCardTypes();
             let tipType = this.getCardPointMgr().getCardType(cards);
@@ -167,14 +166,20 @@ export default class PlayPokerGameMgr extends GameMgr {
                 index = (index + 1) % legalTypes.length;
                 tipType = legalTypes[index];
             }
-            let tipCard;
             do {
                 tipCard = this.getCardPointMgr().findCardByType(gamber.holds, tipType);
                 index = (index + 1) % legalTypes.length;
                 tipType = legalTypes[index];
             } while (!tipCard);
-            this.net.G_TipCard(gamber.userId, tipCard);
         }
+        let tipIndexs = [];
+        for (let card of tipCard) {
+            let index = gamber.holds.indexOf(card);
+            if (index >= 0) {
+                tipIndexs.push(index);
+            }
+        }
+        this.net.G_TipCard(gamber.userId, tipCard, tipIndexs);
     }
 
     @ConditionFilter(ErrorCode.GAME_STATE_ERROR, GameConst.GameState.BETTING)

@@ -4,6 +4,7 @@ import RechargeMgr from "../common/RechargeMgr";
 import { ErrorCode, ErrorMsg } from "../game_server/ErrorCode";
 import GameUtil from "../utils/GameUtil";
 import LogUtil from "../utils/LogUtil";
+import LocationModel from "../common/LocationModel";
 
 const wx_tool = require('../utils/wx_tool');
 const db = require('../utils/db');
@@ -56,7 +57,16 @@ export default class HallHttp extends BaseHttp {
     }
 
     static C_UpdateLocation(res: any, msg: any) {
-        
+        let userId = msg.userId;
+        let user = AllUserMgr.ins.getUser(userId);
+        if (user && (msg.longitude != -1 && msg.latitude != -1)) {
+            let location = new LocationModel();
+            location.longitude = msg.longitude;
+            location.latitude = msg.latitude;
+            location.city = msg.city;
+            user.location = location;
+        }
+        this.send(res);
     }
 
     static CB_PayResult(res: any, postData: any, req: any) {

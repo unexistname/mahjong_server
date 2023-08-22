@@ -83,6 +83,23 @@ export default class GameNet {
         }
     }
 
+    G_SyncTeamHolds(holds: { [key: string]: any[] }, teamUserIds: string[]) {
+        let clientHolds: { [key: string]: any[] } = {};
+        for (let userId in holds) {
+            if (teamUserIds.indexOf(userId) >= 0) {
+                clientHolds[userId] = GameUtil.deepClone(holds[userId]);
+            } else {
+                clientHolds[userId] = [];
+                for (let hold of holds[userId]) {
+                    clientHolds[userId].push(-1);
+                }
+            }
+        }
+        for (let userId of teamUserIds) {
+            NetUtil.sendMsg(userId, NetDefine.WS_Resp.G_InitHolds, clientHolds);
+        }
+    }
+
     G_Fold(userId: string, pai: number | number[], cardType?: any, syncUserId?: string) {
         let data = {userId: userId, pai: pai, cardType: cardType};
         this.send(NetDefine.WS_Resp.G_Fold, data, syncUserId);

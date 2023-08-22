@@ -24,6 +24,7 @@ export default class CenterHttp extends BaseHttp {
             let data = config.servers.center_login;
             this._config_servers.servers = data.servers;
             this._config_servers.recommend = data.recommend;
+            this._config_servers.debug = data.debug;
         }
         return this._config_servers;
     }
@@ -60,7 +61,8 @@ export default class CenterHttp extends BaseHttp {
             }
             let data = {
                 servers: servers,
-                recommend: this.getRecommendServer()
+                recommend: this.getRecommendServer(),
+                debug: this.getServerConfig().debug
             }
             this.send(res, data);
         } else {

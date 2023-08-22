@@ -10,7 +10,8 @@ exports.servers =
             "servers": [//loginserver                         
                 { "index": 1,"desc": "麻将1服", "name":"内测版","url": "127.0.0.1:8002", "token": "fKhxfw/cwLE2ok2VrqmV9w==" },
             ],
-            "recommend": 1
+            "recommend": 1,
+            "debug": 1
         },
         "login_hall": {
             "servers"://hall_server

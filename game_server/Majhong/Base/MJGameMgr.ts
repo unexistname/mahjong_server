@@ -262,7 +262,7 @@ export default class MJGameMgr extends GameMgr {
         let userId = gamber.userId;
         for (let otherGamber of this.gambers) {
             if (otherGamber != gamber) {
-                if (otherGamber.canHu || otherGamber.canGang || otherGamber.canPeng) {
+                if (otherGamber.canHu || otherGamber.canGang || otherGamber.canPeng || otherGamber.hued) {
                     this.operateWant[userId] = {op: "chi", index: index};
                     return;
                 }
@@ -309,7 +309,7 @@ export default class MJGameMgr extends GameMgr {
         let userId = gamber.userId;
         for (let otherGamber of this.gambers) {
             if (otherGamber != gamber) {
-                if (otherGamber.canHu) {
+                if (otherGamber.canHu || otherGamber.hued) {
                     this.operateWant[userId] = {op: "peng"};
                     return;
                 }
@@ -348,7 +348,7 @@ export default class MJGameMgr extends GameMgr {
         }
         for (let otherGamber of this.gambers) {
             if (otherGamber != gamber) {
-                if (otherGamber.canHu) {
+                if (otherGamber.canHu || otherGamber.hued) {
                     this.operateWant[userId] = {op: "gang", pai: pai};
                     return;
                 }

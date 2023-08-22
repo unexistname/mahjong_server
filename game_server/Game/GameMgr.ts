@@ -338,9 +338,6 @@ export default class GameMgr {
             let card = this.cardMgr.drawCard();
             card != null && this.banker.addCard(card);
         }
-        // TODO: 测试
-        // this.banker.holds = [41,2,6,9,9,12,13,14,18,19,20,25,26,29,32,33,14];
-        // this.banker.holds = [38,0,2,2,5,10,15,18,24,25,26,29,29,30,31,35,0]
         for (let gamber of this.gambers) {
             LogUtil.debug("cards: ", gamber.userId, gamber.holds);
         }

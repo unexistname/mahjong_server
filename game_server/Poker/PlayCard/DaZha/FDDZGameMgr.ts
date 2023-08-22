@@ -7,6 +7,7 @@ import FDDZCardPointMgr from "./FDDZCardPointMgr";
 import FDDZNet from "./FDDZNet";
 import PlayPokerGameMgr from "../Base/PlayPokerGameMgr";
 import PlayPokerGamberModel from "../Base/PlayPokerGamberModel";
+import PlayPokerOperate from "../Base/PlayPokerOperate";
 
 
 export default class FDDZGameMgr extends PlayPokerGameMgr {
@@ -96,6 +97,47 @@ export default class FDDZGameMgr extends PlayPokerGameMgr {
         return gamber;
     }
 
+    canSeeFriendCard(userId: string) {
+        let gamber = <PlayPokerGamberModel>this.getGamberByUserId(userId);
+        return gamber && gamber.holds.length <= 0;
+    }
+
+    getFriendUserId(userId: string) {
+        let gamber = <PlayPokerGamberModel>this.getGamberByUserId(userId);
+        if (gamber) {
+            let friend = this.getFriend(gamber);
+            return friend.userId;
+        }     
+    }
+
+    getTeamByUserId(userId: string) {
+        let teamUserIds = [userId];
+        let friendUserId = this.getFriendUserId(userId);
+        if (friendUserId) {
+            teamUserIds.push(friendUserId);
+        }
+        return teamUserIds;
+    }
+
+    G_InitHolds(syncUserId?: string) {
+        let holds: { [key: string]: any[] } = {};
+        for (let gamber of this.gambers) {
+            holds[gamber.userId] = GameUtil.deepClone(gamber.holds);
+            for (let i = gamber.holds.length - this.getDarkCardNum(); i < gamber.holds.length; ++i) {
+                holds[gamber.userId][i] = -1;
+            }
+        }
+        if (syncUserId) {
+            let teamUserIds = this.canSeeFriendCard(syncUserId) ? this.getTeamByUserId(syncUserId) : [syncUserId];
+            this.net.G_SyncTeamHolds(holds, teamUserIds);
+        } else {
+            for (let userId in holds) {
+                let teamUserIds = this.canSeeFriendCard(userId) ? this.getTeamByUserId(userId) : [userId];
+                this.net.G_SyncTeamHolds(holds, teamUserIds);
+            }
+        }
+    }
+
     settle(): void {
         let friend = this.getFriend(this.winner);
         this.winner.scorePoint += this.fundPool;
@@ -156,6 +198,10 @@ export default class FDDZGameMgr extends PlayPokerGameMgr {
         } else {
             return gamber != this.bankerFriend && gamber2 != this.bankerFriend;
         }
+    }
+
+    getOptionalOperate(gamber: GamberModel) {
+        return super.getOptionalOperate(gamber) | PlayPokerOperate.TIP;
     }
 
     refshBombBonus(gamber: PlayPokerGamberModel, cards: number[]) {

@@ -110,7 +110,10 @@ export default class AllUserMgr {
             }
             let user = new UserModel(userDao);
             this.users[user.userId] = user;
-            callback && callback(ErrorCode.SUCCESS, this.getUserDto(userDao));
+            db.get_user_wins_rate(user.userId, (winRate: number) => {
+                user.winRate = winRate;
+                callback && callback(ErrorCode.SUCCESS, this.getUserDto(userDao));
+            });
         });
     }
 
@@ -123,7 +126,10 @@ export default class AllUserMgr {
             let user = new UserModel(userDao);
             this.users[user.userId] = user;
             userDao.userName = crypto.toBase64(user.userName);
-            callback && callback(ErrorCode.SUCCESS, this.getUserDto(userDao));
+            db.get_user_wins_rate(user.userId, (winRate: number) => {
+                user.winRate = winRate;
+                callback && callback(ErrorCode.SUCCESS, this.getUserDto(userDao));
+            });
         });
     }
 
