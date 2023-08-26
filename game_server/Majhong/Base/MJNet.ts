@@ -2,6 +2,7 @@ import { NetDefine } from "../../../base_net/NetDefine";
 import NetUtil from "../../../base_net/NetUtil";
 import GameUtil from "../../../utils/GameUtil";
 import GameNet from "../../Game/GameNet";
+import MJOperate from "./MJOperate";
 
 
 export default class MJNet extends GameNet {
@@ -28,7 +29,13 @@ export default class MJNet extends GameNet {
     }
 
     G_SyncCombines(userId: string, penggangs: number[], syncUserId?: string) {
-        let data = { userId: userId, penggangs: penggangs };
+        let penggangsBak = GameUtil.deepClone(penggangs);
+        for (let penggang of penggangsBak) {
+            if (penggang[0] == "angang") {
+                penggang[1] = -1;
+            }
+        }
+        let data = { userId: userId, penggangs: penggangsBak };
         this.send(NetDefine.WS_Resp.G_SyncCombines, data, syncUserId);
     }
 
@@ -50,5 +57,27 @@ export default class MJNet extends GameNet {
             data.draw = -1;
         }
         NetUtil.userBroadcast(NetDefine.WS_Resp.G_SyncHolds, data, userId, false);
+    }
+
+    G_DoOperate(userId: string, operate: any, value?: any, syncUserId?: string) {
+        let data = {
+            userId: userId,
+            operate: operate,
+        }
+        if (value != null) {
+            data = GameUtil.mergeDict(data, {value: value});
+        }
+        if (operate == MJOperate.GANG && value && value.gangtype == "angang") {
+            this.send(NetDefine.WS_Resp.G_DoOperate, data, userId);
+            let dataOther = GameUtil.deepClone(data);
+            dataOther.value.pai = -1;
+            if (!syncUserId) {
+                NetUtil.userBroadcast(NetDefine.WS_Resp.G_DoOperate, data, userId, false);
+            }
+        } else if (operate == MJOperate.GUO) {
+            this.send(NetDefine.WS_Resp.G_DoOperate, data, userId);
+        } else {
+            this.send(NetDefine.WS_Resp.G_DoOperate, data, syncUserId);
+        }
     }
 }

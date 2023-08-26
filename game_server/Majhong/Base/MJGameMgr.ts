@@ -60,6 +60,32 @@ export default class MJGameMgr extends GameMgr {
         this.net.G_DecideWind(this.getDecideWindData());
     }
 
+    // initHolds() {
+    //         let cardNum = this.getBrightCardNum() + this.getDarkCardNum();
+    //     for (let gamber of this.gambers) {
+    //         for (let i = 0; i < cardNum / 2; ++i) {
+    //             let card = this.cardMgr.drawCard();
+    //             card != null && gamber.addCard(card);
+    //         }
+    //         // this.sortCard && this.cardMgr.sortCard(gamber.holds, this.huns);
+    //     }
+    //     this.cardMgr.shuffle();
+    //     for (let gamber of this.gambers) {
+    //         for (let i = 0; i < cardNum / 2; ++i) {
+    //             let card = this.cardMgr.drawCard();
+    //             card != null && gamber.addCard(card);
+    //         }
+    //         // this.sortCard && this.cardMgr.sortCard(gamber.holds, this.huns);
+    //     }
+    //     for (let i = 0; i < this.getBankerAdditionalCard(); ++i) {
+    //         let card = this.cardMgr.drawCard();
+    //         card != null && this.banker.addCard(card);
+    //     }
+    //     for (let gamber of this.gambers) {
+    //         LogUtil.debug("cards: ", gamber.userId, gamber.holds);
+    //     }
+    // }
+
     getDecideWindData() {
         let data : { [ key: string ] : number } = {};
         for (let i = 0; i < this.gamberNum; ++i) {
@@ -594,11 +620,7 @@ export default class MJGameMgr extends GameMgr {
 
     notifyOperate(gamber: MJGamberModel, operate: any, data: any = {}) {
         gamber.operates.push({operate: operate, value: data});
-        if (operate == MJOperate.GUO) {
-            this.net.G_DoOperate(gamber.userId, operate, data, gamber.userId);
-        } else {
-            this.net.G_DoOperate(gamber.userId, operate, data);
-        }
+        this.net.G_DoOperate(gamber.userId, operate, data);
         this.net.G_SyncHolds(gamber.userId, gamber.holds);
         LogUtil.debug("G_DoOperate", gamber.userId, operate, data, gamber.holds);
         this.recordMgr.recordOperate(gamber.userId, operate, data);

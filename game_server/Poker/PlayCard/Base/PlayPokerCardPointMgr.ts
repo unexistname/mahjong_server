@@ -938,14 +938,13 @@ export default class PlayPokerCardPointMgr extends PokerCardPointMgr {
 
     static findBetterBomb(folds: number[], holds: number[]) {
         let amount = this.parseCardPointAmountTable(holds);
-        let minPoint = 0;
-        if (folds.length == 4) {
-            minPoint = this.getCardPoint(folds[0]);
-        }
-        if (amount[4]) {
-            for (let point of amount[4]) {
-                if (point > minPoint) {
-                    return this.findCards(holds, [point], 3);
+        let minPoint = this.getCardPoint(folds[0]);
+        for (let i = folds.length; i <= 8; ++i) {
+            if (amount[i]) {
+                for (let point of amount[i]) {
+                    if (point > minPoint || i > folds.length) {
+                        return this.findCards(holds, [point], i);
+                    }
                 }
             }
         }

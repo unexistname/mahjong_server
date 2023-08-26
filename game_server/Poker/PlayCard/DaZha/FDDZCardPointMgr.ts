@@ -1,3 +1,4 @@
+import GameUtil from "../../../../utils/GameUtil";
 import { PokerCardDecor } from "../../Base/PokerCardDecor";
 import PlayPokerCardPointMgr, { CARD_TYPE } from "../Base/PlayPokerCardPointMgr";
 
@@ -72,9 +73,9 @@ export default class FDDZCardPointMgr extends PlayPokerCardPointMgr {
         if (this.is510K(cards)) {
             if (this.isSameDecor(cards)) {
                 let decorPoint = 4 - this.getCardDecor(cards[0]);
-                return 200 + decorPoint;
+                return 3100 + decorPoint;
             } else {
-                return 100;
+                return 3000;
             }
         } else if (this.isLeopard(cards)) {
             if (this.isGhost(cards[0])) {
@@ -93,6 +94,68 @@ export default class FDDZCardPointMgr extends PlayPokerCardPointMgr {
             return cards.length * 1000 + point;
         }
         return 0;
+    }
+
+    static find510K(holds: number[]) {
+        let dict = this.parseCardPointTable(holds);
+        if (dict[5] && dict[10] && dict[13]) {
+            return this.findCards(holds, [5, 10, 13], 1);
+        }
+    }
+
+    static findBomb(holds: number[]) {
+        return this.find510K(holds) || this.findMinLeopard(holds, 4);
+    }
+
+    static findBetterBomb(folds: number[], holds: number[]) {
+        let dict = this.parseCardPointTable(holds);
+        let amount = this.parseCardPointAmountTable(holds);
+        let bombVal = this.getBombValue(folds);
+        let len = Math.floor(bombVal / 1000);
+        let minPoint = bombVal % 1000;
+        let ghostLen = (dict[16] || 0) + (dict[17] || 0);
+        for (let i = Math.max(len, 4); i <= 8; ++i) {
+            if (amount[i]) {
+                for (let point of amount[i]) {
+                    if (point > minPoint || i > len) {
+                        return this.findCards(holds, [point], i);
+                    }
+                }
+            }
+        }
+        if (ghostLen >= 3) {
+            if (6000 > bombVal) {
+                return this.findCards(holds, [16], 3);
+            }
+            if (ghostLen == 4 && 7000 > bombVal) {
+                return this.findCards(holds, [16], 4);
+            }
+        }
+        if (ghostLen > 0) {
+            for (let i = 3; i <= 8; ++i) {
+                if (amount[i]) {
+                    for (let point of amount[i]) {
+                        if (point > minPoint || (i + ghostLen) > len) {
+                            let card = this.findCards(holds, [point], i);
+                            let ghost: number[] = [];
+                            if (dict[16]) {
+                                let smallGhost = this.findCards(holds, [16], dict[16]);
+                                if (smallGhost) {
+                                    ghost = GameUtil.mergeList(ghost, smallGhost);
+                                }
+                            }
+                            if (dict[17]) {
+                                let bigGhost = this.findCards(holds, [17], dict[17]);
+                                if (bigGhost) {
+                                    ghost = GameUtil.mergeList(ghost, bigGhost);
+                                }
+                            }
+                            return card && GameUtil.mergeList(card, ghost);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     static getBonusFactor(cards: number[]) {
